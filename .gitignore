@@ -1,0 +1,29 @@
+# --- Python (application) ---
+application/.venv/
+application/dist/
+application/build/
+__pycache__/
+*.py[oc]
+*.env
+
+# --- LaTeX (manuscript) ---
+# Ignores auxiliary folders created by MiKTeX/IntelliJ
+manuscript/out/
+manuscript/auxil/
+
+# Ignores general LaTeX auxiliary files (if they end up in src)
+*.aux
+*.log
+*.out
+*.pdf
+*.toc
+*.bbl
+*.blg
+*.synctex.gz
+
+# --- IDE / System ---
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
+*.iml
