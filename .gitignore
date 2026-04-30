@@ -6,7 +6,7 @@ __pycache__/
 *.py[oc]
 *.env
 
-# --- LaTeX (manuscript) ---
+# --- LaTeX ---
 # Ignores auxiliary folders created by MiKTeX/IntelliJ
 manuscript/out/
 manuscript/auxil/

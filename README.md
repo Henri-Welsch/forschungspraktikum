@@ -29,3 +29,16 @@ The LaTeX manuscript in this repository uses a template obtained from Springer. 
 *   **Springer LNCS Conference Proceedings Guidelines:** [https://www.springer.com/gp/computer-science/lncs/conference-proceedings-guidelines](https://www.springer.com/gp/computer-science/lncs/conference-proceedings-guidelines)
 
 Look for the "LaTeX2e Proceedings Templates download" under the "Important downloads for authors" section on the Springer website.
+
+
+
+Generally speaking, this project is split into 3 modules:
+- The one where the Python code lives.
+- The one where the LaTeX expose lives.
+- The one where the LaTeX paper lives.
+
+When it comes to the structure of the LaTeX codes, the content follows https://kdp.amazon.com/en_US/help/topic/GDDYZG2C7RVF5N9J (Content is split into Front, Body, and Back Matter). Here, `main.tex` under `src` is always the entry point to the document.
+
+For the styling of the LaTeX, we used the following templates:
+- https://www.springer.com/gp/computer-science/lncs/conference-proceedings-guidelines
+- https://kdp.amazon.com/en_US/help/topic/GDDYZG2C7RVF5N9J
