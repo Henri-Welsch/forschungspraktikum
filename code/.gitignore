@@ -1,0 +1,12 @@
+.idea
+.vscode/settings.json
+.venv
+.python-version
+.lh
+*.egg-info
+cache*
+*__pycache__*
+/css_geodata_service/robustness_of_accessability/cache
+/css_geodata_service/robustness_of_accessability/data
+/css_geodata_service/robustness_of_accessability/geodata
+/css_geodata_service/robustness_of_accessability/output
