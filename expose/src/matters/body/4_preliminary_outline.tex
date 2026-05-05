@@ -8,19 +8,48 @@
 
 %% Beginning ===========================
 
-%! Von dir
-Auch wenn deine \href{https://www.scribbr.de/category/aufbau-und-gliederung/}{Gliederung} noch nicht ganz ausgereift ist, kannst du hier gut deine ersten Ideen strukturieren.
 
+\begin{enumerate}
+    \item \textbf{Einleitung}
+    \begin{itemize}
+        \item Motivation: Relevanz der stätischen Resilienz gegenüber Extremwetterereignissen.
+        \item Problemstellung: Vernachlässigung funktionaler Abhängigkeiten (Strom) in bestehenden Erreichbarkeitsmodellen.
+        \item Zielsetzung: Erweiterung des \textit{Robustness of Accessibility} (RoA) Index um Kaskadeneffekte und zeitabhängige Notstrompuffer (\textit{Lifetimes}).
+    \end{itemize}
 
-„Entwerfen Sie eine erste grobe Gliederung für die Abschlussarbeit und
-beschreiben Sie unter jedem Gliederungspunkt stichwortartig, was Sie
-unter diesem Punkt ausführen möchten. Eine feste Vorgabe für den
-Seitenumfang der Abschlussarbeit machen wir nicht – diese kann von
-Arbeit zu Arbeit durchaus variieren(Wir müssen 5 Seiten haben und nicht mehr).“
+    \item \textbf{Grundlagen und Stand der Forschung}
+    \begin{itemize}
+        \item \textit{Robustness of Accessibility} (RoA): Definition und technische Umsetzung der physischen Erreichbarkeit nach Kaub et al.\cite{kaub2024}.
+        \item Kaskadeneffekte: Modellierung von Stromausfällen und Interdependenzen nach Lickert et al.\cite{lickert2024}.
+        \item Datenbasis: Nutzung von OSM zur Repräsentation von Energieinfrastruktur.
+    \end{itemize}
 
+    \item \textbf{Konzeptionelles Modell: Funktionaler RoA}
+    \begin{itemize}
+        \item Definition der funktionalen Verfügbarkeit: Mathematische Verknüpfung von physischem Pfad, Energieversorgung und \textit{Lifetime}.
+        \item Topologische Kopplung: Modellierung der Abhängigkeit zwischen POIs und Netzknoten.
+        \item Zeitdiskrete Simulation: Beschreibung des Zustandsübergangs von $T+0$ bis $T+n$.
+    \end{itemize}
 
-%Das Konzept ist das Herzstück deines Exposés: Hier stellst du deine Fragestellung, deine \href{https://www.scribbr.de/methodik/hypothesen-formulieren/}{Hypothese} (Ergebnisannahme) und gegebenenfalls auch deine \href{https://www.scribbr.de/category/methodik/}{Methodik} vor.
+    \item \textbf{Softwaretechnische Implementierung}
+    \begin{itemize}
+        \item Systemarchitektur: Integration in das bestehende Python-Framework.
+        \item Daten-Pipeline: Extraktion von \texttt{power}-Tags via OSM und Aufbau des Stromgraphen.
+        \item Algorithmus: Modifikation der Routing-Logik zur dynamischen Filterung funktionaler Zielknoten.
+    \end{itemize}
 
-%„Im Rahmen der Bachelorarbeit wird eine Analyse dieser \href{https://www.scribbr.de/methodik/fallstudie/}{Case Study} durchgeführt, um zu untersuchen, wie sich der Tweet durch die Medienlandschaft gezogen hat.“
+    \item \textbf{Evaluierung und Ergebnisanalyse}
+    \begin{itemize}
+        \item Case Study: Anwendung auf das Hochwasserszenario in Trier.
+        \item Vergleich: Quantifizierung des „funktionalen Gaps“ zwischen physischer und funktionaler RoA\@.
+        \item Sensitivitätsanalyse: Untersuchung der Auswirkungen variierender Notstromkapazitäten auf die Gesamtresilienz.
+    \end{itemize}
+
+    \item \textbf{Fazit und Ausblick}
+    \begin{itemize}
+        \item Zusammenfassung: Bestätigung der Hypothese, dass statische Modelle die Resilienz potenziell überschätzen.
+        \item Limitationen und zukünftige Forschung: Integration weiterer Sektoren (z. B.\ Wasser und Gas).
+    \end{itemize}
+\end{enumerate}
 
 %% Ending ==============================
