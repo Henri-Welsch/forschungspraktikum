@@ -3,17 +3,18 @@
 
 %! Einfügung und Veränderung von "Ziel und Forschungsinteresse" zu Fragestellung - Inhaltliche Anforderung (Bao)
 
+
 \section{Fragestellung}
 \label{sec:fragestellung}
 
 %% Beginning ===========================
 
 Die Berechnung der Erreichbarkeit von \textbf{Points of Interest (POIs)} ist ein multidimensionales Problem, das sowohl physische als auch funktionale Komponenten umfasst.
-In der klassischen Literatur werden zur Bewertung der physischen Dimension häufig Ansätze wie der \textbf{Loss of Serviceability (LoS) Index} oder der \textbf{Link Performance Index (LPI)} herangezogen, um die Erreichbarkeit von POIs über das Straßennetz zu quantifizieren.
+In der klassischen Literatur werden zur Bewertung der physischen Dimension häufig Ansätze wie der \textbf{Loss of Serviceability (LoS) Index} oder der \textbf{Link Performance Index (LPI)}, wie sie etwa in Kaub et al.\ \cite{kaub2024} dargestellt werden, herangezogen, um die Erreichbarkeit von POIs über das Straßennetz zu quantifizieren.
 Parallel dazu untersuchen spezialisierte Modelle die funktionale Dimension von Infrastrukturen.
-So zeigen Lickert et al.\ (2024), wie kritische Einrichtungen durch Kaskadeneffekte in Versorgungsnetzen (z. B. Stromausfälle) ihre Betriebsfähigkeit verlieren können, selbst wenn das Gebäude physisch erreichbar bleibt.
+So zeigen Lickert et al.\ \cite{lickert2024}, wie kritische Einrichtungen durch Kaskadeneffekte in Versorgungsnetzen ihre Betriebsfähigkeit verlieren können, selbst wenn das Gebäude physisch erreichbar bleibt.
 
-Um die Resilienz urbaner Räume quantifizierbar zu machen, wurde erstmal der \textbf{Robustness of Accessibility (RoA) Index} nach Kaub et al.\ entwickelt.
+Um die Resilienz urbaner Räume quantifizierbar zu machen, wurde erstmal der \textbf{Robustness of Accessibility (RoA) Index} nach Kaub et al.\ \cite{kaub2024} entwickelt.
 Im Gegensatz zu punktuellen Analysen ermöglicht der RoA eine ganzheitliche Bewertung der Zugänglichkeit und Nutzbarkeit von Infrastrukturen innerhalb eines Stadtgebiets.
 Dies stellt einen wesentlichen Fortschritt in der Resilienzforschung dar, da auch bei massiven Störungen im Verkehrsnetz valide Aussagen über die verbleibende Logistikkapazität getroffen werden können.
 Trotz dieser Stärke weist der aktuelle RoA-Ansatz eine entscheidende Limitation auf, da er bisher rein auf die physische Dimension des Straßennetzes beschränkt ist.
@@ -21,17 +22,16 @@ Ein POI wird im Modell als erreichbar gewertet, sobald ein Pfad im Verkehrsnetz 
 In einer Realität muss eine POI jedoch sowohl physisch zugänglich als auch funktional nutzbar sein
 
 Hier setzt die vorliegende Arbeit an, welche das Ziel hat, eine methodische Brücke zwischen der flächenhaften Resilienzbewertung des RoA und der funktionalen Zustandsmodellierung von POIs zu schlagen.
-Wobei sich die Frage gestellt wurde, \textit{wie Kaskadeneffekte infolge von Ausfällen in Versorgungsnetzen die funktionale Erreichbarkeit (RoA) kritischer POIs im zeitlichen Verlauf einer Krise beeinflussen}.
+Wobei sich die Frage gestellt wurde, \textit{wie Kaskadeneffekte infolge von Ausfällen in Verkehrs- und Versorgungsinfrastrukturen die zeitabhängige Erreichbarkeit (RoA) kritischer Versorgungsinfrastruktur (POIs) beeinflussen?}
 
 Im Rahmen des Projekts werden folgende Hypothesen und Herausforderungen untersucht:
 \begin{itemize}
-\item \textbf{H1:} Die Integration von Stromausfall-Kaskaden führt zu einer signifikant geringeren Resilienz, als eine rein straßenbasierte RoA-Analyse vermuten lässt\textsuperscript{}.
-\item \textbf{H2:} Durch die Modellierung von \textit{Lifetimes} lassen sich kritische Zeitfenster identifizieren, in denen ein POI trotz blockierter Wege funktional bleibt oder trotz freier Wege ausfällt.
-\end{itemize}  
+    \item \textbf{H1:} Die Integration von Stromausfall-Kaskaden führt zu einer geringeren Resilienz, als eine rein straßenbasierte RoA-Analyse vermuten lässt.
+    \item \textbf{H2:} Durch die Modellierung von \textbf{Lifetimes} lassen sich kritische Zeitfenster identifizieren, in denen ein POI trotz blockierter Wege funktional bleibt oder trotz freier Wege ausfällt.
+\end{itemize}
 
 Das Ziel dieser Forschungsarbeit ist es, eine methodische und technische Brücke zwischen der straßenbasierten RoA-Analyse und zeitabhängigen Kaskadenmodellen zu schlagen.
 Hierzu wird die bestehende Implementierung des RoA-Verfahrens erstmals um die Komponente der Elektrizitätsversorgung erweitert.
-Das Ergebnis ist ein kombiniertes Analysewerkzeug, das die Resilienz nicht mehr nur als Erreichbarkeit von Orten, sondern als Verfügbarkeit von Diensten definiert.
-Dies bietet eine präzisere Entscheidungsgrundlage für die Alarm- und Einsatzplanung im Katastrophenschutz.
+Das Ergebnis ist ein kombiniertes Analysewerkzeug, das die Resilienz nicht mehr nur als Erreichbarkeit von Orten, sondern als Verfügbarkeit von Diensten definiert und Entscheidungsgrundlage für Alarm- und Einsatzplanung im Katastrophenschutz ermöglicht.
 
 %% Ending ==============================
