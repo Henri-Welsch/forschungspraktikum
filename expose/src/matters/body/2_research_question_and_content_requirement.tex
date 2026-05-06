@@ -9,12 +9,12 @@
 
 %% Beginning ===========================
 
-Die Berechnung der Erreichbarkeit von \textbf{Points of Interest (POIs)} ist ein multidimensionales Problem, das sowohl physische als auch funktionale Komponenten umfasst.
-In der klassischen Literatur werden zur Bewertung der physischen Dimension häufig Ansätze wie der \textbf{Loss of Serviceability (LoS) Index} oder der \textbf{Link Performance Index (LPI)}, wie sie etwa in Kaub et al.\ \cite{kaub2024} dargestellt werden, herangezogen, um die Erreichbarkeit von POIs über das Straßennetz zu quantifizieren.
+Die Berechnung der Erreichbarkeit von \textit{POIs} ist ein multidimensionales Problem, das sowohl physische als auch funktionale Komponenten umfasst.
+In der klassischen Literatur werden zur Bewertung der physischen Dimension häufig Ansätze wie der \textit{Loss of Serviceability (LoS) Index} oder der \textit{Link Performance Index for Resilience (LPIR)}, wie sie etwa in Kaub et al.\ \cite{kaub2024} dargestellt werden, herangezogen, um die Erreichbarkeit von POIs über das Straßennetz zu quantifizieren.
 Parallel dazu untersuchen spezialisierte Modelle die funktionale Dimension von Infrastrukturen.
 So zeigen Lickert et al.\ \cite{lickert2024}, wie kritische Einrichtungen durch Kaskadeneffekte in Versorgungsnetzen ihre Betriebsfähigkeit verlieren können, selbst wenn das Gebäude physisch erreichbar bleibt.
 
-Um die Resilienz urbaner Räume quantifizierbar zu machen, wurde erstmal der \textbf{Robustness of Accessibility (RoA) Index} nach Kaub et al.\ \cite{kaub2024} entwickelt.
+Um die Resilienz urbaner Räume quantifizierbar zu machen, wurde erstmal der \textit{RoA-Index} nach Kaub et al.\ \cite{kaub2024} entwickelt.
 Im Gegensatz zu punktuellen Analysen ermöglicht der RoA eine ganzheitliche Bewertung der Zugänglichkeit und Nutzbarkeit von Infrastrukturen innerhalb eines Stadtgebiets.
 Dies stellt einen wesentlichen Fortschritt in der Resilienzforschung dar, da auch bei massiven Störungen im Verkehrsnetz valide Aussagen über die verbleibende Logistikkapazität getroffen werden können.
 Trotz dieser Stärke weist der aktuelle RoA-Ansatz eine entscheidende Limitation auf, da er bisher rein auf die physische Dimension des Straßennetzes beschränkt ist.
@@ -27,7 +27,7 @@ Wobei sich die Frage gestellt wurde, \textit{wie Kaskadeneffekte infolge von Aus
 Im Rahmen des Projekts werden folgende Hypothesen und Herausforderungen untersucht:
 \begin{itemize}
     \item \textbf{H1:} Die Integration von Stromausfall-Kaskaden führt zu einer geringeren Resilienz, als eine rein straßenbasierte RoA-Analyse vermuten lässt.
-    \item \textbf{H2:} Durch die Modellierung von \textbf{Lifetimes} lassen sich kritische Zeitfenster identifizieren, in denen ein POI trotz blockierter Wege funktional bleibt oder trotz freier Wege ausfällt.
+    \item \textbf{H2:} Durch die Modellierung von \textit{Lifetimes} lassen sich kritische Zeitfenster identifizieren, in denen ein POI trotz blockierter Wege funktional bleibt oder trotz freier Wege ausfällt.
 \end{itemize}
 
 Das Ziel dieser Forschungsarbeit ist es, eine methodische und technische Brücke zwischen der straßenbasierten RoA-Analyse und zeitabhängigen Kaskadenmodellen zu schlagen.
