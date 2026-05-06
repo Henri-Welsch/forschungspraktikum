@@ -26,7 +26,7 @@ Abschließend wird ein zeitdiskreter Ansatz ($T+0$ bis $T+n$) mit in die Formali
 \paragraph{Phase 3 Softwaretechnische Umsetzung:}
 Die Umsetzung erfolgt im Python-Modul \texttt{robustness\_of\_accessibility}:
 \begin{enumerate}
-    \item \textbf{Datenintegration:} Erweiterung der Datengrundlage um Energieversorgung (OSM-Daten) via Overpass API und räumliche \textit{Nearest-Neighbor}-Zuordnung zu den POIs.
+    \item \textbf{Datenintegration:} Erweiterung der Datengrundlage um Energieversorgung (OSM-Daten) und räumliche \textit{Nearest-Neighbor}-Zuordnung zu den POIs.
     \item \textbf{Kaskaden-Simulator:} Entwicklung eines Simulators zur Abbildung \newline kaskadierender Ausfälle, wobei die Deaktivierung von Netzknoten zu Stromausfällen an zugeordneten POIs führt, deren funktionale Verfügbarkeit nach Ablauf ihrer individuellen Autonomiezeit (\textit{Lifetimes}) erlischt.
     \item \textbf{RoA-Modifikation:} Anpassung der Routing-Logik in \texttt{calculate\_routes()}, um den zeitabhängigen funktionalen Status der POIs in die Score-Berechnung einzubeziehen.
 \end{enumerate}
@@ -35,6 +35,6 @@ Die Umsetzung erfolgt im Python-Modul \texttt{robustness\_of\_accessibility}:
 Die Analyse gliedert sich in drei Schritte:
 (1) \textbf{Vergleichende Analyse:} Gegenüberstellung physischer und funktionaler RoA-Scores zur Quantifizierung des „funktionalen Gaps“ (theoretisch erreichbare vs.\ operativ verfügbare POIs).
 (2) \textbf{Sensitivitätsanalyse:} Systematische Variation der Autonomiezeiten (Backup-Kapazitäten) zur Identifikation kritischer Kipppunkte der städtischen Resilienz.
-(3) \textbf{Sensitivitätsanalyse:} Es soll aufgezeigt werden, dass Resilienz kein statischer Index, sondern eine zeitabhängige Variable ist, deren Dynamik maßgeblich durch funktionale Abhängigkeiten geprägt wird.
+(3) \textbf{Synthese:} Es soll aufgezeigt werden, dass Resilienz kein statischer Index, sondern eine zeitabhängige Variable ist, deren Dynamik maßgeblich durch funktionale Abhängigkeiten geprägt wird.
 
 %% Ending ==============================
