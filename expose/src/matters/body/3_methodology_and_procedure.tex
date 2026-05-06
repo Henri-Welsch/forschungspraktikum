@@ -13,14 +13,14 @@ Zur Beantwortung der Forschungsfrage wird ein vierstufiger methodischer Ansatz v
 
 \paragraph{Phase 1 Literaturrecherche und Baseline-Analyse:}
 Zunächst erfolgt eine systematische Aufarbeitung des Forschungsstandes sowie eine Analyse der Codebasis.
-Einerseits wird der \textit{RoA-Index} (Kaub et al., 2024) untersucht, um die bestehende Routing-Logik (Dijkstra und A*-basiert) als Baseline zu verstehen.
-Andererseits werden Kaskadeneffekte in kritischen Infrastrukturen nach Lickert et al.\ (2024) analysiert.
+Einerseits wird der \textit{RoA-Index} (Kaub et al., 2024 \cite{kaub2024}) untersucht, um die bestehende Routing-Logik (Dijkstra und A*-basiert) als Baseline zu verstehen.
+Andererseits werden Kaskadeneffekte in kritischen Infrastrukturen nach Lickert et al.\ (2024)~\cite{lickert2024} analysiert.
 Ziel ist die Identifikation technischer Schnittstellen zur Integration funktionaler Parameter wie \textit{Lifetimes} (Notstrompuffer) und topologischer Abhängigkeiten (OSM-Daten).
 
 \paragraph{Phase 2 Konzeptionelle Modellentwicklung:}
 Anschließend wird die konzeptionelle Erweiterung des RoA-Modells um kaskadierende Effekte und eine zeitliche Dimension vorgenommen.
 Dabei wird untersucht, wie die Kopplung zwischen Stromnetz und Gebäuden (Autonomiezeit / Lifetime) die Erreichbarkeit beeinflussen könnte.
-Daraufhin wird ein logisches Verknüpfungsschema formalisiert, das den POI-Zustand in Abhängigkeit von der Energieversorgung und spezifischen Netzknoten (in Anlehnung an Lickert et al.) beschreibt.
+Daraufhin wird ein logisches Verknüpfungsschema formalisiert, das den POI-Zustand in Abhängigkeit von der Energieversorgung und spezifischen Netzknoten (in Anlehnung an Lickert et al. \cite{lickert2024}) beschreibt.
 Abschließend wird ein zeitdiskreter Ansatz ($T+0$ bis $T+n$) mit in die Formalisierung aufgenommen, um die Dynamik funktionaler Ausfälle im Zeitverlauf abbildbar zu machen.
 
 \paragraph{Phase 3 Softwaretechnische Umsetzung:}
