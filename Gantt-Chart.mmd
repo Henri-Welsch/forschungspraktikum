@@ -1,51 +1,51 @@
 gantt
-title Forschungspraktikum (SS 2026): Resilienzanalyse Trier (Aktualisiert)
-dateFormat  YYYY-MM-DD
-axisFormat  %b-%d
-tickInterval 1week
+    title Forschungspraktikum (SS 2026): Resilienzanalyse Trier (Aktualisiert)
+    dateFormat YYYY-MM-DD
+    axisFormat %b-%d
+    tickInterval 1week
+    todayMarker off
 
     section Offizielle Meilensteine
-    Einführung & Themenverteilung (H321)          :milestone, m1, 2026-04-15, 0d
-    Überblick KI-Tools für die Forschung           :milestone, m2, 2026-04-22, 0d
-    Digitale Abgabe des Exposés (StudIP)           :milestone, m3, 2026-05-06, 0d
-    Präsentation im Plenum (Fragestellung/Methodik):milestone, m4, 2026-06-03, 0d
-    Digitale Abgabe des Papers (15 S. StudIP)      :milestone, m5, 2026-09-08, 0d
-    Abschlussworkshop mit Ergebnisvortrag          :milestone, m6, 2026-09-30, 2026-10-07
+        Einführung & Themenverteilung (H321): milestone, m1, 2026-04-15, 0d
+        Überblick KI-Tools für die Forschung: milestone, m2, 2026-04-22, 0d
+        Digitale Abgabe des Exposés (StudIP): milestone, m3, 2026-05-06, 0d
+        Präsentation im Plenum (Fragestellung/Methodik): milestone, m4, 2026-06-03, 0d
+        Digitale Abgabe des Papers (15 S. StudIP): milestone, m5, 2026-09-08, 0d
+        Abschlussworkshop mit Ergebnisvortrag: milestone, m6, 2026-09-30, 2026-10-07
 
     section Phase 1: Baseline, Literatur & Exposés
-    Anfertigung & Erstellung des Exposés           :done, p1_ex, 2026-04-15, 2026-05-06
-    Literatursichtung nach (Kaub / Lickert) und diverse andere             :done, p1_1, 2026-04-15, 2026-05-15
-    Codebasis-Analyse                              :done, p1_2, 2026-05-05, 2026-06-02
+Anfertigung & Erstellung des Exposés           : done, p1_ex, 2026-04-15, 2026-05-06
+Literatursichtung nach Kaub / Lickert und mehr: done, p1_1, 2026-04-15, 2026-05-15
+Codebasis-Analyse: done, p1_2, 2026-05-05, 2026-06-02
 
-    section Aktuelle Aufgabe
-    Erstellung der Plenumspräsentation             :active, p2_4, 2026-05-20, 2026-06-02
+Erstellung der Plenumspräsentation:active, p2_4, 2026-05-20, 2026-06-02
 
-    section Phase 2: Konzeptionelle Modellentwicklung
-    Ausarbeitung Erstkonzept (Stromnetz/Gebäude)    :p2_1, 2026-05-28, 2026-06-10
-    Formalisierung logisches Verknüpfungsschema    :p2_2, 2026-06-04, 2026-06-18
-    Zeitdiskreter Ansatz (T+0 bis T+n)             :p2_3, 2026-06-11, 2026-06-22
+section Phase 2: Konzeptionelle Modellentwicklung
+Ausarbeitung Erstkonzept (Stromnetz/Gebäude):p2_1, 2026-05-28, 2026-06-10
+Formalisierung logisches Verknüpfungsschema:p2_2, 2026-06-04, 2026-06-18
+Zeitdiskreter Ansatz (T+0 bis T+n): p2_3, 2026-06-11, 2026-06-22
 
-    section Phase 3: Softwareumsetzung
-    Datenintegration (OSM Energieversorgung - Nguyen) :p3_1, 2026-06-15, 2026-07-05
-    Räumliche Nearest-Neighbor-Zuordnung (Nguyen)   :p3_2, 2026-06-25, 2026-07-12
-    Entwicklung Kaskaden-Simulator (Welsch)          :p3_3, 2026-07-01, 2026-07-22
-    Implementierung Autonomiezeiten/Lifetimes (Welsch):p3_4, 2026-07-12, 2026-07-28
-    Anpassung Routing-Logik in calculate_routes()     :p3_5, 2026-07-22, 2026-08-08
+section Phase 3: Softwareumsetzung
+Datenintegration (OSM Energieversorgung): p3_1, 2026-06-15, 2026-07-05
+Räumliche Nearest-Neighbor-Zuordnung: p3_2, 2026-06-25, 2026-07-12
+Entwicklung Kaskaden-Simulator (Welsch): p3_3, 2026-07-01, 2026-07-22
+Implementierung Autonomiezeiten (Welsch): p3_4, 2026-07-12, 2026-07-28
+Anpassung Routing-Logik in calculate_routes(): p3_5, 2026-07-22, 2026-08-08
 
-    section Phase 4: Evaluation & Analyse
-    Vergleichende Analyse (Funktionaler Gap)       :p4_1, 2026-07-25, 2026-08-14
-    Sensitivitätsanalyse (Variation Lifetimes - Nguyen):p4_2, 2026-08-05, 2026-08-22
-    Synthese (Resilienz als zeitabhängige Variable)  :p4_3, 2026-08-15, 2026-08-28
+section Phase 4: Evaluation & Analyse
+Vergleichende Analyse (Funktionaler Gap): p4_1, 2026-07-25, 2026-08-14
+Sensitivitätsanalyse (Variation Lifetimes): p4_2, 2026-08-05, 2026-08-22
+Synthese (Resilienz als zeitabhängige Variable)  : p4_3, 2026-08-15, 2026-08-28
 
-    section Verschriftlichung
-    Kontinuierliche Arbeit am 15-seitigen Paper    :p5_1, 2026-07-01, 2026-09-08
-    Fokus Ergebniddokumentation (letzter Monat)    :p5_2, 2026-08-12, 2026-09-07
-    Vorbereitung Abschlusspräsentation             :p5_3, 2026-09-08, 2026-09-29
+section Verschriftlichung
+Kontinuierliche Arbeit am 15-seitigen Paper: p5_1, 2026-07-01, 2026-09-08
+Fokus Ergebniddokumentation (letzter Monat): p5_2, 2026-08-12, 2026-09-07
+Vorbereitung Abschlusspräsentation: p5_3, 2026-09-08, 2026-09-29
 
-    section Berichte & Reports
-    Abgabe Verlaufsbericht April                   :done, r1, 2026-04-30, 0d
-    Abgabe Verlaufsbericht Mai                     :crit, r2, 2026-05-31, 0d
-    Abgabe Verlaufsbericht Juni                    :r3, 2026-06-30, 0d
-    Abgabe Verlaufsbericht Juli                    :r4, 2026-07-31, 0d
-    Abgabe Verlaufsbericht August                  :r5, 2026-08-31, 0d
-    Abgabe Hilfsmittelübersicht & Eigenständigkeit :r6, 2026-09-08, 0d
+section Berichte & Reports
+Abgabe Verlaufsbericht April: done, r1, 2026-04-30, 0d
+Abgabe Verlaufsbericht Mai: crit, r2, 2026-05-31, 0d
+Abgabe Verlaufsbericht Juni: r3, 2026-06-30, 0d
+Abgabe Verlaufsbericht Juli: r4, 2026-07-31, 0d
+Abgabe Verlaufsbericht August: r5, 2026-08-31, 0d
+Abgabe Hilfsmittelübersicht & Eigenständigkeit: r6, 2026-09-08, 0d
