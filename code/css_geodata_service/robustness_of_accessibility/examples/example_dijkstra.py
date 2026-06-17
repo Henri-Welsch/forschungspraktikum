@@ -44,7 +44,7 @@ administrative_boundaries = extract_boundaries(osm=None, library="osmnx", polygo
 # data for trier can be downloaded via https://akrima-storage.dfki.uni-trier.de/dataset/osm-data-trier
 # get the flooding area
 print("3: get flooding area")
-base_path: str = "css_geo_data_service/robustness_of_accessibility/data/"
+base_path: str = "css_geodata_service/robustness_of_accessibility/data/"
 flooding_path_m: str = f"{base_path}input/Flooding/HazardAreas/nz_hazardArea_fluival_L-DE_cropped_trier.geojson"
 flooded_area_trier_m = gpd.read_file(flooding_path_m)
 flooded_area_trier_geoms_m = flooded_area_trier_m.geometry
