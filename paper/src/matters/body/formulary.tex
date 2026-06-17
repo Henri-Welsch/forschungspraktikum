@@ -1,0 +1,94 @@
+\section{Formulary}
+\label{sec:formulary}
+
+Die Erweiterung des RoA-Indexes um die funktionale komponente (Wasser, Strom ,etc.) inspiriert sich an dem mnsi konzept von Kaub et. al. wobei wir die bestehen physische komponetne um funktionale komponenten erweietern und dann alle komponenetn aretmetieren.
+
+\vspace{2mm}
+
+\noindent
+\begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \small
+    \textbf{Originaler Index nach Kaub et al.} \\[2mm]
+    $\displaystyle RoA(\mathcal{C}) = \sum_{j=1}^{m} \left( a_{\mathcal{C},j} \cdot \frac{c(s_{j},d_{j})}{c^{\prime}(s_{j}^{\prime},d_{j}^{\prime})} \right) \refstepcounter{equation}(\theequation)$
+\end{minipage}%
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \small
+    \textbf{Neuer und erweiterter RoA Index} \\[2mm]
+    $\displaystyle RoA(\mathcal{C}, t) = \sum_{j=1}^{m} \left( a_{\mathcal{C},j} \cdot \prod_{i \in I} x_i(t) \right) \refstepcounter{equation}(\theequation)$
+\end{minipage}
+
+\vspace{2mm}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+    $RoA(\mathcal{C}, t)$ & Funktionaler Gesamtbereich Erreichbarkeitsindex zum Zeitpunkt $t$. \\
+    $\mathcal{C}$ / $m$ & Set ($\mathcal{C}$) und Anzahl ($m$) der POI-Verbindungen (Krankenhaus etc.). \\
+    $a_{\mathcal{C},j}$ & Gewichtungsfaktor des POIs $j$ nach Kaub et al. unter $\sum_{j=1}^{m} a_{\mathcal{C},j} = 1$. \\
+    $I$ / $i$ & Set ($I$) und Anzahl ($n$) der Verbindungskanäle (Strom, Straße etc.). \\
+    $x_i(t)$ & Erreichbarkeit des Kanals $i$ zum Zeitpunkt $t$ im Interval $[0-1]$. \\
+
+\end{tabularx}
+
+\vspace{7mm}
+
+\noindent
+Die Zustandssteuerung integriert individuell modellierte Infrastrukturen.
+Für dieses Projekt wurde der Straßenindex um eine Zeitkomponente erweitert und eine, binäre Logik für Versorgungsnetze (Strom, Wasser) umgesetzt.
+
+\vspace{2mm}
+
+\noindent
+\begin{minipage}[t]{0.58\textwidth}
+    \centering
+    \small
+    \textbf{Strom- \& Wasserversorgung} \\[2mm]
+    $\displaystyle x_{\text{Infr}}(t) = \begin{cases}
+                                            1, & \text{wenn } t_{\text{off}} \le t_{\text{on}} \\
+                                            1, & \text{wenn sonst } t \le t_{\text{off}} + \Delta t_{\text{puffer}} \\
+                                            0, & \text{sonst}
+    \end{cases} \refstepcounter{equation}(\theequation)$
+\end{minipage}%
+\begin{minipage}[t]{0.40\textwidth}
+    \centering
+    \small
+    \textbf{Erweiterter Routing-Quotient} \\[2mm]
+    $\displaystyle x_{\text{Straße}}(t) = \frac{c(s_j, d_j, t_0)}{c'(s_j', d_j', t)} \refstepcounter{equation}(\theequation)$
+\end{minipage}
+
+\vspace{2mm}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+    $x_{\text{Infr}}(t):$ & Wasser, Strom, etc. nach Verfügbarkeit, wobei $t_{\text{off}}$ = Disconnected from Gird, $t_{\text{on}}$ = Connected frm Grid und $\Delta t_{\text{puffer}}$ = Notpuffer. \\
+    $x_{\text{Straße}}(t):$ & Erweiterter Quotient von Kaub et al. um die Zeitkomponente $t$. \\
+    $c(s_j, d_j, t_0):$ & Reisekosten beim Start $t_0$ der Simulation von $s_j$ nach $d_j$. \\
+    $c'(s_j', d_j', t):$ & Reisekosten zum Zeitpunkt $t$ der Simulation von $s_j'$ nach $d_j'$.
+\end{tabularx}
+
+\vspace{7mm}
+
+\noindent
+Dies ermöglicht die Berechnung eines ganzheitlichen Resilienzindexes über den Zeitraum [0,tn​].
+Diese Fläche dient der Evaluierung, ob Infrastrukturanpassungen zu einer tatsächlichen Verbesserung der Systemresilienz führen.
+
+\begin{minipage}[t]{\textwidth}
+    \centering
+    \small
+    \textbf{Zeitintegrierter Resilienzindex}
+    \begin{equation*}
+        \text{RoA}_{\text{Int}}(\mathcal{C}) = \frac{1}{t_{\text{end}} - t_{\text{start}}} \int_{t_{\text{start}}}^{t_{\text{end}}} \text{RoA}(\mathcal{C}, t) \, dt
+    \end{equation*}
+    \raggedright
+    \footnotesize
+
+\end{minipage}
+\vspace{2mm}
+
+\noindent
+\begin{tabularx}{\textwidth}{@{}l X@{}}
+    $\text{RoA}_{\text{Int}}$ & Akkumulierter, zeitintegrierter Gesamtindex über das gesamte Katastrophenintervall $[t_{\text{start}}, t_{\text{end}}]$.
+    Durch den Vorfaktor wird die Fläche unter der Resilienzkurve normiert, was einen robusten Vergleich verschiedener Szenarien auf einer Skala von $0$ bis $1$ erlaubt.
+\end{tabularx}
