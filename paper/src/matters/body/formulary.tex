@@ -1,7 +1,7 @@
 \section{Formulary}
 \label{sec:formulary}
 
-Die Erweiterung des RoA-Indexes um die funktionale komponente (Wasser, Strom ,etc.) inspiriert sich an dem mnsi konzept von Kaub et. al. wobei wir die bestehen physische komponetne um funktionale komponenten erweietern und dann alle komponenetn aretmetieren.
+Die Erweiterung des RoA-Indexes um die funktionalen Komponenten (Wasser, Strom, etc.) orientiert sich an dem MNSI-Konzept von Kaub et. al., wobei wir die bestehenden physischen Komponenten um funktionale Komponenten erweitern und dann alle Komponenten arithmetisch mitteln.
 
 \vspace{2mm}
 
@@ -26,7 +26,7 @@ Die Erweiterung des RoA-Indexes um die funktionale komponente (Wasser, Strom ,et
 \begin{tabularx}{\textwidth}{@{}l X@{}}
     $RoA(\mathcal{C}, t)$ & Funktionaler Gesamtbereich Erreichbarkeitsindex zum Zeitpunkt $t$. \\
     $\mathcal{C}$ / $m$ & Set ($\mathcal{C}$) und Anzahl ($m$) der POI-Verbindungen (Krankenhaus etc.). \\
-    $a_{\mathcal{C},j}$ & Gewichtungsfaktor des POIs $j$ nach Kaub et al. unter $\sum_{j=1}^{m} a_{\mathcal{C},j} = 1$. \\
+    $a_{\mathcal{C},j}$ & Gewichtungsfaktor des POIs $j$ nach Kaub et. al.\ unter $\sum_{j=1}^{m} a_{\mathcal{C},j} = 1$. \\
     $I$ / $i$ & Set ($I$) und Anzahl ($n$) der Verbindungskanäle (Strom, Straße etc.). \\
     $x_i(t)$ & Erreichbarkeit des Kanals $i$ zum Zeitpunkt $t$ im Interval $[0-1]$. \\
 
@@ -36,7 +36,7 @@ Die Erweiterung des RoA-Indexes um die funktionale komponente (Wasser, Strom ,et
 
 \noindent
 Die Zustandssteuerung integriert individuell modellierte Infrastrukturen.
-Für dieses Projekt wurde der Straßenindex um eine Zeitkomponente erweitert und eine, binäre Logik für Versorgungsnetze (Strom, Wasser) umgesetzt.
+Für dieses Projekt wurde der Straßenindex um eine Zeitkomponente erweitert und eine binäre Logik für Versorgungsnetze (Strom, Wasser) umgesetzt.
 
 \vspace{2mm}
 
@@ -62,8 +62,8 @@ Für dieses Projekt wurde der Straßenindex um eine Zeitkomponente erweitert und
 
 \noindent
 \begin{tabularx}{\textwidth}{@{}l X@{}}
-    $x_{\text{Infr}}(t):$ & Wasser, Strom, etc. nach Verfügbarkeit, wobei $t_{\text{off}}$ = Disconnected from Gird, $t_{\text{on}}$ = Connected frm Grid und $\Delta t_{\text{puffer}}$ = Notpuffer. \\
-    $x_{\text{Straße}}(t):$ & Erweiterter Quotient von Kaub et al. um die Zeitkomponente $t$. \\
+    $x_{\text{Infr}}(t):$ & Wasser, Strom, etc.\ nach Verfügbarkeit, wobei $t_{\text{off}}$ = Disconnected from Gird, $t_{\text{on}}$ = Connected frm Grid und $\Delta t_{\text{puffer}}$ = Notpuffer. \\
+    $x_{\text{Straße}}(t):$ & Erweiterter Quotient von Kaub et. al.\ um die Zeitkomponente $t$. \\
     $c(s_j, d_j, t_0):$ & Reisekosten beim Start $t_0$ der Simulation von $s_j$ nach $d_j$. \\
     $c'(s_j', d_j', t):$ & Reisekosten zum Zeitpunkt $t$ der Simulation von $s_j'$ nach $d_j'$.
 \end{tabularx}
