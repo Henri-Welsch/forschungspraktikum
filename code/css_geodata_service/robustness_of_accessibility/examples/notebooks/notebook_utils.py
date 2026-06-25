@@ -25,7 +25,7 @@ def set_notbook_wd():
 
     # Walk up to the desired parent (e.g., 'css_geodata_service')
     for parent in notebook_path.parents:
-        if parent.name == "css-geodata-service":
+        if parent.name == "code":
             os.chdir(parent)
             break
 
