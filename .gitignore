@@ -5,6 +5,7 @@ application/build/
 __pycache__/
 *.py[oc]
 *.env
+*.lock
 
 # --- LaTeX ---
 # Ignores auxiliary folders created by MiKTeX/IntelliJ
