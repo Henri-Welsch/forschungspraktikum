@@ -89,10 +89,17 @@
 - Sensitivitätsanalyse
 - Überprüfung der Hypothesen
 
-## 8) Fazit und Ausblick
+## 8) Discussion
+
+- Limitierung
+- kurze zsmf. der ergebnisse#
+- interpretation der ergebnisse
+- unerwartete ergebnisse
+
+## 9) Fazit und Ausblick
 
 - Beantwortung der Forschungsfrage
 
-## 9) References
+## 10) References
 
 - Quellen
