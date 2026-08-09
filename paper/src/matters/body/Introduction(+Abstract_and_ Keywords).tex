@@ -1,0 +1,75 @@
+%! Author = baong
+%! Date = 04.08.2026
+
+\begin{abstract}
+    Der Abstrakt gehört hier hin.
+
+\end{abstract}
+
+\noindent\textbf{Keywords:}% Dies ist erstmal nur eine grobe keywords einschätzung und muss noch am Ende angepasst werden!!!!
+Kritische Infrastrukturen, Kaskadeneffekte, robustness of accessibility, power outages
+
+
+\section{Introduction}
+\label{sec:introduction}
+
+
+%Absatz 1
+%-kleine allgemeine Einführung
+%-Motivation
+
+Die Funktionsfähigkeit moderner Gesellschaften hängt maßgeblich von der zuverlässigen Bereitstellung kritischer Infrastrukturen ab \cite{lickert2024}. Dabei sind Versorgungsleistungen wie zum Beispiel Wasser-, Gesundheits- und Energieversorgung sowie der Transport von Lebensmitteln und Gütern für eine funktionierende Gesellschaft unabdingbar \cite{lickert2024,chiaradonna2007}. Kritische Infrastrukturen sind eng miteinander verknüpft und sollten daher als interdependente Systeme betrachtet werden, da die Funktionsfähigkeit einzelner Systeme von anderen Infrastrukturen abhängen kann \cite{chiaradonna2007}. Dadurch entstehen wechselseitige Abhängigkeiten zwischen verschiedenen Infrastrukturen \cite{chiaradonna2007}.
+
+%Absatz 2
+%-Problemstellung (Wirtschaftsinformatisches Problem)
+
+Werden die Infrastrukturen gestört, könnten weitreichende Folgen entstehen, die sich nicht nur auf die unmittelbar betroffenen Systeme beschränken. Da zwischen Infrastrukturen Abhängigkeiten bestehen, kann der Ausfall einer Infrastrukutur weitere Störungen in abhängigen Infrastrukuturen verursachen \cite{laprie2007}. Eine solche Kettenreaktion von Störungen kann als kaskadierender Effekt beziehungsweise kaskadierender Ausfall beschrieben werden \cite{laprie2007}. Im Extremfall führen die daraus enstehenden Kaskaden zu vollständigen Systemzusammenbruch \cite{buldyrev2010}. Daher ist für die Auswertung verschiedener Krisenszenarien nicht nur entscheidend welche Infrastrukturen akut betroffen sind, sondern auch, wie sich daraus resultierende Ausfälle im zeitlichen Verlauf auf abhängige Infrastrukturen ausbreiten können \cite{lickert2024}.
+
+Für die Versorgung der Bevölkerung ist bei Infrastrukturausfällen entscheidend, ob kritische \textbf{Point of Interest (POIs)}, beispielsweise Krankenhäuser, sowohl funktionsfähig als auch über das Straßennetz erreichbar bleiben \cite{kaub2024, lickert2024}. Kaub et al. haben mit dem \textbf{Robustness of Accessinility (RoA)} einen Ansatz entwickelt, bei dem man die Veränderung der Erreichbarkeit einzelner POIs von intakten mit gestörten Straßennetzen vergleicht \cite{kaub2024}.
+
+%Absatz 3
+%-Forschungslücke
+
+Die betrachteten zentralen Ansätze untersuchen die verkehrsbezogene Erreichbarkeit in gestörten Straßennetzen und die zeitliche Ausbreitung kaskadierender Ausfälle in interdependenten Versorgungsinfrastrukturen getrennt voneinander. Während Kaub et al. die Veränderung der Resilienz bewertet nach Störungen im Straßennetz \cite{kaub2024}, modelliert Lickert et al. die Ausbreitung kaskadierender Ausfälle und damit einhergeheneden funktionalen Ausfällen interdependenten Infrastrukturen \cite{lickert2024}. Es bleibt jedoch offen, wie die verkehrsbezogene Erreichbarkeit und die durch kaskadierenden Ausfällen beinflusste Funktionsfähigkeit kritischer POIs im zeitlichem Verlauf gemeinsam sich in einer Krise auswirken.
+
+
+
+
+%Absatz 4
+%-Forschungsfrage
+
+Aus dieser Forschungslücke ergibt sich die Forschungsfrage, \textit{wie Kaskadeneffekte infolge von Ausfällen in Verkehrs- und Versorgungsinfrastrukturen die zeitabhängige Erreichbarkeit (RoA) kritischer Versorgungsinfrastruktur (POIs) beeinflussen?}
+
+Das Ziel dieses Papiers ist es, die straßenbasierte Resilienzbewertung des RoA methodisch und technisch mit der zeitabhängigen Modellierung kaskadierender Infrastrukturausfälle zu verknüpfen.
+
+
+%BESPRECHUNG BEZÜGLICH DES ZIELS WICHTIG
+%Das Ziel dieser Arbeit ist es, den straßenbasierten RoA-Ansatz um eine
+%zeitabhängige Modellierung der funktionalen Zustände kritischer Points of
+%Interest (POIs) bei kaskadierenden Versorgungsausfällen zu erweitern.
+
+
+
+der funktionalen Zustandsmodellierung von POIs zu verknüpfen.
+
+
+Im Rahmen dieses Papiers werden folgende Hypothesen und Herausforderungen untersucht:
+\begin{itemize}
+    \item \textbf{H1:} Die Integration von Stromausfall-Kaskaden führt zu einer geringeren Resilienz, als eine rein straßenbasierte RoA-Analyse vermuten lässt.
+    \item \textbf{H2:} Durch die Modellierung von \textit{Lifetimes} lassen sich kritische Zeitfenster identifizieren, in denen ein POI trotz blockierter Wege funktional bleibt oder trotz freier Wege ausfällt.
+\end{itemize}
+
+\textit{Lifetimes} bezeichnet hier die Zeitspanne, während einer kritischen Infrastruktur nach dem Verlust einer Versorgungsleistung, noch funktionsfähig bleibt, zum Beispiel von Notstrom \cite{lickert2024}. Nach Ablauf der Lifetimes ist die betroffene Infrastrukutur als funktionsunfähig einzustufen.
+%Absatz 5
+%-Ziel und wissenschaftlicher Beitrag
+
+
+
+
+%Absatz 6
+%Paper Overview
+
+
+
+
+

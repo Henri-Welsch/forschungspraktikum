@@ -31,7 +31,7 @@
 - Forschungsfrage
 - Wenn ein Verfahren entwickelt werden soll, was soll das Verfahren genau leisten?
 - Was soll bei der Arbeit am Ende rauskommen?
-- Eine Absatz welche eine Übersicht des ganzen Papers gibt
+- Ein Absatz welche eine Übersicht des ganzen Papers gibt
   - Jede Section wird mit einem Satz kurz beschrieben
 
 ## 4) Grundlagen UND/ODER Related Works
