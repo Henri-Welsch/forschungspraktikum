@@ -63,6 +63,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import geopandas as gpd
+import pandas as pd
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import unary_union
 
@@ -501,6 +502,23 @@ _ANIMATION_HTML_TEMPLATE = """\
       padding: 8px 14px; border-radius: 6px; font-size: 13px;
       z-index: 1000; line-height: 1.7; pointer-events: none;
     }}
+
+    /* ── Facility / infrastructure panel ─────────────────────── */
+    #facility-panel {{
+      position: fixed; top: 10px; right: 10px;
+      background: rgba(8,8,22,0.90); color: #d8ddf0;
+      padding: 10px 14px; border-radius: 6px; font-size: 12.5px;
+      z-index: 1000; line-height: 1.6; min-width: 190px;
+      display: none;
+    }}
+    .facility-row {{ display: flex; align-items: center; gap: 7px; }}
+    .facility-swatch {{
+      width: 10px; height: 10px; border-radius: 50%;
+      display: inline-block; flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.4);
+    }}
+    .facility-label {{ flex: 1; }}
+    .facility-count {{ font-weight: 600; color: #e8ecff; }}
   </style>
 </head>
 <body>
@@ -510,6 +528,8 @@ _ANIMATION_HTML_TEMPLATE = """\
     <strong>Trier &mdash; Flood Simulation</strong><br>
     HQ100 &bull; 14-day event &bull; hourly steps
   </div>
+
+  <div id="facility-panel"></div>
 
   <div id="controls">
     <!-- Phase indicator bar -->
@@ -558,6 +578,11 @@ _ANIMATION_HTML_TEMPLATE = """\
     // WGS-84 boundary polygon geometry
     var BOUNDARY = __BOUNDARY__;
 
+    // Facility / infrastructure layers (optional — empty when not provided)
+    var FACILITY_TYPES   = __FACILITY_TYPES__;    // [{{key,label,color}}, ...]
+    var FACILITY_POINTS  = __FACILITY_POINTS__;   // {{key: [{{lat,lon,name}}, ...]}}
+    var FACILITY_FLOODED = __FACILITY_FLOODED__;  // {{key: [[bool, ...] per stage]}}
+
     // ── Map setup ────────────────────────────────────────────────────────────
     var map = L.map('map', {{ zoomControl: true }})
                 .setView([__CENTER_LAT__, __CENTER_LON__], 12);
@@ -599,6 +624,64 @@ _ANIMATION_HTML_TEMPLATE = """\
       }},
       interactive: false
     }}).addTo(map);
+
+    // ── Facility / infrastructure markers ──────────────────────────────────────
+    var facilityMarkers = {{}};  // key -> array of L.CircleMarker (aligned with FACILITY_POINTS[key])
+
+    FACILITY_TYPES.forEach(function (meta) {{
+      var group = L.layerGroup().addTo(map);
+      facilityMarkers[meta.key] = (FACILITY_POINTS[meta.key] || []).map(function (pt) {{
+        var marker = L.circleMarker([pt.lat, pt.lon], {{
+          radius: 7,
+          weight: 1.2,
+          color: '#ffffff',
+          fillColor: meta.color,
+          fillOpacity: 0.9
+        }});
+        marker.bindTooltip(pt.name + ' — ' + meta.label);
+        marker.addTo(group);
+        return marker;
+      }});
+    }});
+
+    var facilityPanelEl = document.getElementById('facility-panel');
+    if (FACILITY_TYPES.length > 0) {{
+      facilityPanelEl.style.display = 'block';
+      facilityPanelEl.innerHTML = FACILITY_TYPES.map(function (meta) {{
+        return '<div class="facility-row">' +
+                 '<span class="facility-swatch" style="background:' + meta.color + '"></span>' +
+                 '<span class="facility-label">' + meta.label + '</span>' +
+                 '<span class="facility-count" id="facility-count-' + meta.key + '">–</span>' +
+               '</div>';
+      }}).join('');
+    }}
+
+    function updateFacilityMarkers(stageIdx) {{
+      FACILITY_TYPES.forEach(function (meta) {{
+        var key        = meta.key;
+        var floodedArr = (FACILITY_FLOODED[key] || [])[stageIdx] || [];
+        var markers    = facilityMarkers[key] || [];
+        var points     = FACILITY_POINTS[key] || [];
+        var floodedCount = 0;
+
+        markers.forEach(function (marker, i) {{
+          var isFlooded = !!floodedArr[i];
+          if (isFlooded) floodedCount++;
+          marker.setStyle({{
+            fillColor:   isFlooded ? '#8a8a8a' : meta.color,
+            color:       isFlooded ? '#5a5a5a' : '#ffffff',
+            fillOpacity: isFlooded ? 0.35 : 0.9
+          }});
+          var status = isFlooded ? 'Flooded — unavailable' : 'Available';
+          marker.setTooltipContent(points[i].name + ' — ' + meta.label + '<br>' + status);
+        }});
+
+        var countEl = document.getElementById('facility-count-' + key);
+        if (countEl) {{
+          countEl.textContent = (markers.length - floodedCount) + ' / ' + markers.length + ' available';
+        }}
+      }});
+    }}
 
     // ── Phase meta ───────────────────────────────────────────────────────────
     var PHASE_LABELS  = [
@@ -643,6 +726,9 @@ _ANIMATION_HTML_TEMPLATE = """\
           properties: {{ progress: progress }}
         }});
       }}
+
+      // Update facility / infrastructure availability
+      updateFacilityMarkers(stageIdx);
 
       // Update time label
       var day     = Math.floor(frame / 24) + 1;
@@ -737,12 +823,68 @@ _ANIMATION_HTML_TEMPLATE = """\
 """.format(lv=_LEAFLET_VERSION)
 
 
+def _facility_layers_to_js(
+    facility_layers: Optional[Dict[str, Dict]],
+) -> tuple[str, str, str]:
+    """Serialise facility/infrastructure layer definitions into the three JS
+    literals consumed by the animation template.
+
+    Each entry in *facility_layers* has the shape::
+
+        {
+            "hospital": {
+                "gdf": <GeoDataFrame>,                    # geometry + optional "name" column
+                "flooded_by_stage": [[bool, ...], ...],   # from flood_status.compute_flood_status_by_stage
+                "label": "Hospitals",
+                "color": "#CC2222",
+            },
+            ...
+        }
+
+    Returns
+    -------
+    tuple of str
+        ``(facility_types_js, facility_points_js, facility_flooded_js)`` —
+        JSON literals ready for template substitution.
+    """
+    if not facility_layers:
+        return "[]", "{}", "{}"
+
+    types_meta: List[Dict] = []
+    points_by_type: Dict[str, List[Dict]] = {}
+    flooded_by_type: Dict[str, List[List[bool]]] = {}
+
+    for ftype, layer in facility_layers.items():
+        gdf = layer["gdf"]
+        label = layer.get("label", ftype)
+        color = layer.get("color", "#888888")
+
+        types_meta.append({"key": ftype, "label": label, "color": color})
+
+        points: List[Dict] = []
+        for _, row in gdf.iterrows():
+            centroid = row.geometry.centroid
+            name = row.get("name") if "name" in row.index else None
+            name = str(name) if name is not None and pd.notna(name) else label
+            points.append({"lat": centroid.y, "lon": centroid.x, "name": name})
+        points_by_type[ftype] = points
+
+        flooded_by_type[ftype] = layer.get("flooded_by_stage", [])
+
+    return (
+        json.dumps(types_meta, separators=(",", ":")),
+        json.dumps(points_by_type, separators=(",", ":")),
+        json.dumps(flooded_by_type, separators=(",", ":")),
+    )
+
+
 def build_flood_animation_html(
     boundary_geom: "BaseGeometry",
     stages: List[Dict],
     output_path: Path,
     center_lat: float = 49.754,
     center_lon: float = 6.649,
+    facility_layers: Optional[Dict[str, Dict]] = None,
 ) -> Path:
     """Generate a self-contained HTML flood simulation animation file.
 
@@ -770,6 +912,13 @@ def build_flood_animation_html(
         Leaflet map initial centre latitude (default: Trier centre).
     center_lon : float
         Leaflet map initial centre longitude (default: Trier centre).
+    facility_layers : dict, optional
+        ``{facility_type: {"gdf": GeoDataFrame, "flooded_by_stage": [...],
+        "label": str, "color": str}}``. When provided, each facility type is
+        drawn as a marker layer whose colour dims to grey for stages where
+        that facility is flooded (per ``flooded_by_stage``, typically from
+        :func:`css_geodata_service.robustness_of_accessibility.utils.flood_status.compute_flood_status_by_stage`).
+        Omit (default ``None``) to reproduce the plain flood-only animation.
 
     Returns
     -------
@@ -803,14 +952,24 @@ def build_flood_animation_html(
     stage_hours_js = json.dumps(stage_for_hour)
 
     # ------------------------------------------------------------------
-    # 4. Inject into template and write
+    # 4. Serialise facility/infrastructure layers (optional)
+    # ------------------------------------------------------------------
+    facility_types_js, facility_points_js, facility_flooded_js = _facility_layers_to_js(
+        facility_layers
+    )
+
+    # ------------------------------------------------------------------
+    # 5. Inject into template and write
     # ------------------------------------------------------------------
     html = _ANIMATION_HTML_TEMPLATE
-    html = html.replace("__BOUNDARY__",     boundary_js)
-    html = html.replace("__FLOOD_STAGES__", flood_stages_js)
-    html = html.replace("__STAGE_HOURS__",  stage_hours_js)
-    html = html.replace("__CENTER_LAT__",   str(round(center_lat, 4)))
-    html = html.replace("__CENTER_LON__",   str(round(center_lon, 4)))
+    html = html.replace("__BOUNDARY__",         boundary_js)
+    html = html.replace("__FLOOD_STAGES__",     flood_stages_js)
+    html = html.replace("__STAGE_HOURS__",      stage_hours_js)
+    html = html.replace("__CENTER_LAT__",       str(round(center_lat, 4)))
+    html = html.replace("__CENTER_LON__",       str(round(center_lon, 4)))
+    html = html.replace("__FACILITY_TYPES__",   facility_types_js)
+    html = html.replace("__FACILITY_POINTS__",  facility_points_js)
+    html = html.replace("__FACILITY_FLOODED__", facility_flooded_js)
 
     output_path.write_text(html, encoding="utf-8")
     size_kb = output_path.stat().st_size / 1024

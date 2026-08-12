@@ -3,6 +3,7 @@ from enum import StrEnum
 import os
 from pathlib import Path
 import geopandas as gpd
+import osmnx as ox
 import pandas as pd
 
 
@@ -88,6 +89,27 @@ def get_roa_hazard_data_path(
         else:
             file_type = ".geojson"
     return get_roa_hazard_areas_path() / f"nz_hazardArea_fluival_{event.value}-DE{region_modifier}{file_type}"
+
+
+def load_or_fetch_osm_features(
+    cache_path: Path,
+    polygon,
+    tags: dict,
+) -> gpd.GeoDataFrame:
+    """Load a GeoDataFrame of OSM features from a cached GeoJSON file, or
+    fetch it from OpenStreetMap via osmnx and persist it to *cache_path* for
+    reuse by subsequent notebook runs.
+
+    Shared by notebooks that need the same POI/infrastructure feature types
+    (hospitals, fire stations, power/water infrastructure, ...) so the
+    fetch-and-cache pattern isn't duplicated per notebook.
+    """
+    if cache_path.exists():
+        return gpd.read_file(cache_path)
+    gdf = ox.features_from_polygon(polygon=polygon, tags=tags)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    gdf.to_file(cache_path, driver="GeoJSON")
+    return gdf
 
 
 def unwrap_nested_list(lst):
