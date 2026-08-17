@@ -519,6 +519,15 @@ _ANIMATION_HTML_TEMPLATE = """\
     }}
     .facility-label {{ flex: 1; }}
     .facility-count {{ font-weight: 600; color: #e8ecff; }}
+    .panel-subheader {{
+      margin: 7px 0 3px; font-size: 10.5px; text-transform: uppercase;
+      letter-spacing: 0.5px; color: #8899cc; border-top: 1px solid rgba(255,255,255,0.15);
+      padding-top: 6px;
+    }}
+    .connection-swatch {{
+      width: 16px; height: 3px; border-radius: 2px;
+      display: inline-block; flex-shrink: 0;
+    }}
   </style>
 </head>
 <body>
@@ -583,6 +592,11 @@ _ANIMATION_HTML_TEMPLATE = """\
     var FACILITY_POINTS  = __FACILITY_POINTS__;   // {{key: [{{lat,lon,name}}, ...]}}
     var FACILITY_FLOODED = __FACILITY_FLOODED__;  // {{key: [[bool, ...] per stage]}}
 
+    // NCNN POI→infrastructure connections (optional — empty when not provided)
+    var CONNECTION_TYPES = __CONNECTION_TYPES__;  // [{{key,label,color}}, ...]
+    var CONNECTION_LINES = __CONNECTION_LINES__;  // {{key: [{{path,poiName,infraName,poiType}}, ...]}}
+    var CONNECTION_DEAD  = __CONNECTION_DEAD__;   // {{key: [[bool, ...] per stage]}}
+
     // ── Map setup ────────────────────────────────────────────────────────────
     var map = L.map('map', {{ zoomControl: true }})
                 .setView([__CENTER_LAT__, __CENTER_LON__], 12);
@@ -644,16 +658,44 @@ _ANIMATION_HTML_TEMPLATE = """\
       }});
     }});
 
+    // ── NCNN connection lines (POI ↔ power/water infrastructure) ──────────────
+    var connectionLines = {{}};  // key -> array of L.Polyline (aligned with CONNECTION_LINES[key])
+
+    CONNECTION_TYPES.forEach(function (meta) {{
+      var group = L.layerGroup().addTo(map);
+      connectionLines[meta.key] = (CONNECTION_LINES[meta.key] || []).map(function (line) {{
+        var poly = L.polyline(line.path, {{
+          color: meta.color,
+          weight: 3,
+          opacity: 0.8
+        }});
+        poly.bindTooltip(line.poiName + ' → ' + line.infraName);
+        poly.addTo(group);
+        return poly;
+      }});
+    }});
+
     var facilityPanelEl = document.getElementById('facility-panel');
-    if (FACILITY_TYPES.length > 0) {{
+    if (FACILITY_TYPES.length > 0 || CONNECTION_TYPES.length > 0) {{
       facilityPanelEl.style.display = 'block';
-      facilityPanelEl.innerHTML = FACILITY_TYPES.map(function (meta) {{
+      var panelHtml = FACILITY_TYPES.map(function (meta) {{
         return '<div class="facility-row">' +
                  '<span class="facility-swatch" style="background:' + meta.color + '"></span>' +
                  '<span class="facility-label">' + meta.label + '</span>' +
                  '<span class="facility-count" id="facility-count-' + meta.key + '">–</span>' +
                '</div>';
       }}).join('');
+      if (CONNECTION_TYPES.length > 0) {{
+        panelHtml += '<div class="panel-subheader">Connections</div>';
+        panelHtml += CONNECTION_TYPES.map(function (meta) {{
+          return '<div class="facility-row">' +
+                   '<span class="connection-swatch" style="background:' + meta.color + '"></span>' +
+                   '<span class="facility-label">' + meta.label + '</span>' +
+                   '<span class="facility-count" id="connection-count-' + meta.key + '">–</span>' +
+                 '</div>';
+        }}).join('');
+      }}
+      facilityPanelEl.innerHTML = panelHtml;
     }}
 
     function updateFacilityMarkers(stageIdx) {{
@@ -672,13 +714,42 @@ _ANIMATION_HTML_TEMPLATE = """\
             color:       isFlooded ? '#5a5a5a' : '#ffffff',
             fillOpacity: isFlooded ? 0.35 : 0.9
           }});
-          var status = isFlooded ? 'Flooded — unavailable' : 'Available';
+          var status = isFlooded ? 'Dead — unavailable' : 'Available';
           marker.setTooltipContent(points[i].name + ' — ' + meta.label + '<br>' + status);
         }});
 
         var countEl = document.getElementById('facility-count-' + key);
         if (countEl) {{
           countEl.textContent = (markers.length - floodedCount) + ' / ' + markers.length + ' available';
+        }}
+      }});
+    }}
+
+    function updateConnectionLines(stageIdx) {{
+      CONNECTION_TYPES.forEach(function (meta) {{
+        var key      = meta.key;
+        var deadArr  = (CONNECTION_DEAD[key] || [])[stageIdx] || [];
+        var polylines = connectionLines[key] || [];
+        var deadCount = 0;
+
+        polylines.forEach(function (poly, i) {{
+          var isDead = !!deadArr[i];
+          if (isDead) deadCount++;
+          poly.setStyle({{
+            color:   isDead ? '#777777' : meta.color,
+            opacity: isDead ? 0.35 : 0.8,
+            weight:  isDead ? 2 : 3
+          }});
+          var line = (CONNECTION_LINES[key] || [])[i];
+          var status = isDead ? 'Dead — unavailable' : 'Operational';
+          if (line) {{
+            poly.setTooltipContent(line.poiName + ' → ' + line.infraName + '<br>' + status);
+          }}
+        }});
+
+        var countEl = document.getElementById('connection-count-' + key);
+        if (countEl) {{
+          countEl.textContent = (polylines.length - deadCount) + ' / ' + polylines.length + ' operational';
         }}
       }});
     }}
@@ -729,6 +800,9 @@ _ANIMATION_HTML_TEMPLATE = """\
 
       // Update facility / infrastructure availability
       updateFacilityMarkers(stageIdx);
+
+      // Update NCNN connection status (power/water dependency links)
+      updateConnectionLines(stageIdx);
 
       // Update time label
       var day     = Math.floor(frame / 24) + 1;
@@ -878,6 +952,139 @@ def _facility_layers_to_js(
     )
 
 
+def _route_geometry_to_latlon(geom) -> List[List[float]]:
+    """Flatten a (Multi)LineString NCNN route geometry into a single ordered
+    list of ``[lat, lon]`` pairs suitable for a Leaflet polyline.
+
+    Consecutive duplicate points (shared endpoints between the individual
+    road-edge segments that make up the route) are collapsed so the
+    resulting path draws as one continuous line.
+
+    Individual parts are not guaranteed to be oriented head-to-tail: NCNN
+    routes are computed on an undirected graph (``road_network.to_undirected()``),
+    and converting a two-way street's directed edges to a single undirected
+    edge can silently keep the geometry running in either direction. Each
+    part is therefore oriented (reversed if needed) to continue from wherever
+    the accumulated path currently ends, instead of trusting storage order.
+    """
+    if geom is None:
+        return []
+    if geom.geom_type == "LineString":
+        parts = [geom]
+    elif geom.geom_type == "MultiLineString":
+        parts = list(geom.geoms)
+    else:
+        return []
+
+    parts_points = [[[lat, lon] for lon, lat in part.coords] for part in parts]
+    parts_points = [pts for pts in parts_points if pts]
+    if not parts_points:
+        return []
+
+    # The first part has no predecessor to orient against, so use the second
+    # part (if any) as a directional reference instead of trusting storage
+    # order — the first part may itself be stored back-to-front.
+    if len(parts_points) > 1:
+        first, second = parts_points[0], parts_points[1]
+        second_ends = (second[0], second[-1])
+        if first[0] in second_ends and first[-1] not in second_ends:
+            first.reverse()
+
+    path: List[List[float]] = []
+    for part_points in parts_points:
+        if path and part_points[-1] == path[-1] and part_points[0] != path[-1]:
+            part_points = list(reversed(part_points))
+        for point in part_points:
+            if path and path[-1] == point:
+                continue
+            path.append(point)
+    return path
+
+
+def _connection_layers_to_js(
+    connection_layers: Optional[Dict[str, Dict]],
+) -> tuple[str, str, str]:
+    """Serialise POI↔infrastructure NCNN connection layers into the three JS
+    literals consumed by the animation template.
+
+    Each entry in *connection_layers* has the shape::
+
+        {
+            "power": {
+                "label": "Power Connections",
+                "color": "#FFD500",
+                "poi_connections": {
+                    "hospital": {
+                        "gdf": ncnn_results["hospital"]["power"],   # NCNN result:
+                                                                     # poi_name, infra_name,
+                                                                     # geometry (route), ...
+                        "dead_by_stage": [[bool, ...], ...],  # aligned with gdf rows,
+                                                                # from compute_dependency_status_by_stage
+                    },
+                    "fire_station": {...},
+                },
+            },
+            "water": {...},
+        }
+
+    Connection rows with no route geometry (unreachable POI) are dropped;
+    the corresponding per-stage status entries are dropped in lockstep so
+    the returned line list and status arrays stay aligned.
+
+    Returns
+    -------
+    tuple of str
+        ``(connection_types_js, connection_lines_js, connection_dead_js)``.
+    """
+    if not connection_layers:
+        return "[]", "{}", "{}"
+
+    types_meta: List[Dict] = []
+    lines_by_type: Dict[str, List[Dict]] = {}
+    dead_by_type: Dict[str, List[List[bool]]] = {}
+
+    for ctype, layer in connection_layers.items():
+        label = layer.get("label", ctype)
+        color = layer.get("color", "#888888")
+        types_meta.append({"key": ctype, "label": label, "color": color})
+
+        lines: List[Dict] = []
+        dead_columns: List[List[bool]] = []  # one list per kept line, values per stage
+        n_stages = 0
+
+        for poi_type, poi_layer in layer.get("poi_connections", {}).items():
+            gdf = poi_layer["gdf"]
+            dead_by_stage = poi_layer.get("dead_by_stage", [])
+            n_stages = max(n_stages, len(dead_by_stage))
+
+            for pos, (_, row) in enumerate(gdf.iterrows()):
+                path = _route_geometry_to_latlon(row.geometry)
+                if not path:
+                    continue
+                poi_name = row.get("poi_name") or poi_type
+                infra_name = row.get("infra_name") or ctype
+                lines.append({
+                    "path": path,
+                    "poiName": str(poi_name),
+                    "infraName": str(infra_name),
+                    "poiType": poi_type,
+                })
+                dead_columns.append([bool(stage[pos]) for stage in dead_by_stage])
+
+        lines_by_type[ctype] = lines
+        # Transpose per-line/per-stage columns into per-stage/per-line rows,
+        # matching the shape used by FACILITY_FLOODED.
+        dead_by_type[ctype] = [
+            [col[s] for col in dead_columns] for s in range(n_stages)
+        ]
+
+    return (
+        json.dumps(types_meta, separators=(",", ":")),
+        json.dumps(lines_by_type, separators=(",", ":")),
+        json.dumps(dead_by_type, separators=(",", ":")),
+    )
+
+
 def build_flood_animation_html(
     boundary_geom: "BaseGeometry",
     stages: List[Dict],
@@ -885,6 +1092,7 @@ def build_flood_animation_html(
     center_lat: float = 49.754,
     center_lon: float = 6.649,
     facility_layers: Optional[Dict[str, Dict]] = None,
+    connection_layers: Optional[Dict[str, Dict]] = None,
 ) -> Path:
     """Generate a self-contained HTML flood simulation animation file.
 
@@ -919,6 +1127,13 @@ def build_flood_animation_html(
         that facility is flooded (per ``flooded_by_stage``, typically from
         :func:`css_geodata_service.robustness_of_accessibility.utils.flood_status.compute_flood_status_by_stage`).
         Omit (default ``None``) to reproduce the plain flood-only animation.
+    connection_layers : dict, optional
+        ``{infra_type: {"label": str, "color": str, "poi_connections": {poi_type:
+        {"gdf": <NCNN route GeoDataFrame>, "dead_by_stage": [...]}}}}``. When
+        provided, draws each NCNN POI→infrastructure route as a coloured
+        polyline that dims to grey for stages where the connection is dead
+        (per :func:`css_geodata_service.robustness_of_accessibility.utils.flood_status.compute_dependency_status_by_stage`).
+        Omit (default ``None``) to draw no connection lines.
 
     Returns
     -------
@@ -959,17 +1174,27 @@ def build_flood_animation_html(
     )
 
     # ------------------------------------------------------------------
+    # 4b. Serialise NCNN POI↔infrastructure connection layers (optional)
+    # ------------------------------------------------------------------
+    connection_types_js, connection_lines_js, connection_dead_js = _connection_layers_to_js(
+        connection_layers
+    )
+
+    # ------------------------------------------------------------------
     # 5. Inject into template and write
     # ------------------------------------------------------------------
     html = _ANIMATION_HTML_TEMPLATE
-    html = html.replace("__BOUNDARY__",         boundary_js)
-    html = html.replace("__FLOOD_STAGES__",     flood_stages_js)
-    html = html.replace("__STAGE_HOURS__",      stage_hours_js)
-    html = html.replace("__CENTER_LAT__",       str(round(center_lat, 4)))
-    html = html.replace("__CENTER_LON__",       str(round(center_lon, 4)))
-    html = html.replace("__FACILITY_TYPES__",   facility_types_js)
-    html = html.replace("__FACILITY_POINTS__",  facility_points_js)
-    html = html.replace("__FACILITY_FLOODED__", facility_flooded_js)
+    html = html.replace("__BOUNDARY__",          boundary_js)
+    html = html.replace("__FLOOD_STAGES__",      flood_stages_js)
+    html = html.replace("__STAGE_HOURS__",       stage_hours_js)
+    html = html.replace("__CENTER_LAT__",        str(round(center_lat, 4)))
+    html = html.replace("__CENTER_LON__",        str(round(center_lon, 4)))
+    html = html.replace("__FACILITY_TYPES__",    facility_types_js)
+    html = html.replace("__FACILITY_POINTS__",   facility_points_js)
+    html = html.replace("__FACILITY_FLOODED__",  facility_flooded_js)
+    html = html.replace("__CONNECTION_TYPES__",  connection_types_js)
+    html = html.replace("__CONNECTION_LINES__",  connection_lines_js)
+    html = html.replace("__CONNECTION_DEAD__",   connection_dead_js)
 
     output_path.write_text(html, encoding="utf-8")
     size_kb = output_path.stat().st_size / 1024
