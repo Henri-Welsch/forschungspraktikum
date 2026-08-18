@@ -12,35 +12,17 @@
 \usepackage[table]{xcolor}
 \usepackage{tabularx}
 \usepackage{hyperref}
-\usepackage{subcaption}
-\usepackage{amstext}
-\usepackage{amsopn}
 \renewcommand\UrlFont{\color{blue}\rmfamily}
 \urlstyle{rm}
 
 % Document
 \begin{document}
 
-    \title{Title} % TODO: Set Title
-    \author{Joé Welsch \and Van Bao Nguyen}
-    \authorrunning{J. Welsch and V. B. Nguyen}
-    \institute{Universität Trier, Universitätsring 15, 54296 Trier, Deutschland\\
-    \email{\{s4jowels, s4vonguy\}@uni-trier.de}}
+    % Front Matter
+    \input{matters/front/1_title}
+    \input{matters/front/2_abstract}
 
-    \maketitle
-
-    \begin{abstract}
-        % Paper zusammenfassung
-        % Abdeckung folgender Punkte mit je einem kurzen Satz:
-        % - Motivation
-        % - Ziel des Papers
-        % - Vorgehensweise
-        % - Wichtige Ergebnisse
-        % - Fazit
-        % - Keywords einfügen?
-    \end{abstract}
-
-    % Body
+    % Body Matter
     \input{matters/body/01_introduction}
     \input{matters/body/02_related_works}
     \input{matters/body/03_methodology}
@@ -51,6 +33,6 @@
 
     % Back Matter
     \bibliography{paper}
-    \bibliographystyle{splncs04} % Updated to match project's .bst
+    \bibliographystyle{plain}
 
 \end{document}
