@@ -58,11 +58,20 @@ def compute_flood_status(
     flood_geometry: Optional[BaseGeometry],
 ) -> pd.Series:
     """Return a boolean Series (aligned with *facilities*' index): ``True``
-    where a facility's own geometry is covered by *flood_geometry*.
+    where a facility's representative point is covered by *flood_geometry*.
 
-    A facility is considered flooded when its geometry intersects the flood
-    polygon. ``flood_geometry`` of ``None`` (or an empty geometry) means no
-    flooding is present — every facility is reported as available.
+    A facility is considered flooded when a single representative point of
+    its geometry falls inside the flood polygon — not when any part of its
+    (possibly very large) footprint merely touches it. This deliberately
+    trades a small chance of under-reporting a partial flood for avoiding
+    false positives where a sliver of the flood polygon clips the edge of a
+    large campus/footprint while the building itself is unaffected; it also
+    keeps the flood decision consistent with the map, which only ever draws
+    a single point marker per facility. ``representative_point()`` (not
+    ``centroid``) is used because the centroid of a concave footprint can
+    fall outside the polygon entirely. ``flood_geometry`` of ``None`` (or an
+    empty geometry) means no flooding is present — every facility is
+    reported as available.
 
     Parameters
     ----------
@@ -82,7 +91,7 @@ def compute_flood_status(
     """
     if flood_geometry is None or flood_geometry.is_empty or len(facilities) == 0:
         return pd.Series(False, index=facilities.index)
-    return facilities.geometry.intersects(flood_geometry)
+    return facilities.geometry.representative_point().intersects(flood_geometry)
 
 
 def compute_flood_status_by_stage(

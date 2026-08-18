@@ -211,6 +211,22 @@ def load_or_compute_flood_stages(
     return stages
 
 
+def build_stage_for_hour(stages: List[Dict]) -> List[int]:
+    """Map every simulation hour ``[0, SIMULATION_HOURS)`` to the index into
+    *stages* whose progress is nearest that hour's flood level.
+
+    Shared by :func:`build_flood_animation_html` (to pick which flood polygon
+    to draw each frame) and anything that needs to expand other per-stage
+    data — e.g. facility flood/dependency status — to hourly resolution
+    (see ``utils.backup_lifetime.compute_backup_lifetime``), so both stay
+    using the exact same stage at any given hour.
+    """
+    return [
+        get_stage_for_progress(stages, compute_hourly_flood_progress(h))["stage_index"]
+        for h in range(SIMULATION_HOURS)
+    ]
+
+
 def get_stage_for_progress(
     stages: List[Dict],
     progress: float,
@@ -528,6 +544,26 @@ _ANIMATION_HTML_TEMPLATE = """\
       width: 16px; height: 3px; border-radius: 2px;
       display: inline-block; flex-shrink: 0;
     }}
+    .backup-state-counts {{
+      display: flex; gap: 7px; margin-top: 2px; font-size: 11px; color: #b8c0e0;
+    }}
+    .backup-state-counts b {{ color: #fff; }}
+
+    /* ── Backup-lifetime markers (hospitals, fire stations, ...) ──────────── */
+    @keyframes backup-blink {{ 0%, 49% {{ opacity: 1; }} 50%, 100% {{ opacity: 0.15; }} }}
+    .backup-blinking {{ animation: backup-blink 1s steps(1) infinite; }}
+    .backup-marker-icon {{ background: none; border: none; }}
+
+    #backup-panel {{
+      position: fixed; top: 10px; right: 220px;
+      background: rgba(8,8,22,0.92); color: #d8ddf0;
+      padding: 10px 14px; border-radius: 6px; font-size: 12.5px;
+      z-index: 1000; line-height: 1.6; width: 235px;
+      display: none;
+    }}
+    #backup-panel h4 {{ margin: 0 0 8px 0; font-size: 13px; color: #e8ecff; }}
+    #backup-panel .row {{ display: flex; justify-content: space-between; margin: 4px 0; gap: 8px; }}
+    #backup-panel .hint {{ color: #8899cc; font-style: italic; margin-top: 6px; }}
   </style>
 </head>
 <body>
@@ -539,6 +575,7 @@ _ANIMATION_HTML_TEMPLATE = """\
   </div>
 
   <div id="facility-panel"></div>
+  <div id="backup-panel"></div>
 
   <div id="controls">
     <!-- Phase indicator bar -->
@@ -596,6 +633,12 @@ _ANIMATION_HTML_TEMPLATE = """\
     var CONNECTION_TYPES = __CONNECTION_TYPES__;  // [{{key,label,color}}, ...]
     var CONNECTION_LINES = __CONNECTION_LINES__;  // {{key: [{{path,poiName,infraName,poiType}}, ...]}}
     var CONNECTION_DEAD  = __CONNECTION_DEAD__;   // {{key: [[bool, ...] per stage]}}
+
+    // Backup-lifetime POI layers (optional — empty when not provided). Hourly
+    // resolution throughout, unlike everything above (still stage-indexed).
+    var BACKUP_POIS        = __BACKUP_POIS__;         // {{poiType: {{shape, points:[{{lat,lon,name}}], pois:[...]}}}}
+    var RESOURCE_RING_META = __RESOURCE_RING_META__;  // {{resource: {{label, color}}}}
+    var RESTART_THRESHOLD  = __RESTART_THRESHOLD__;   // float, e.g. 0.15
 
     // ── Map setup ────────────────────────────────────────────────────────────
     var map = L.map('map', {{ zoomControl: true }})
@@ -675,8 +718,165 @@ _ANIMATION_HTML_TEMPLATE = """\
       }});
     }});
 
+    // ── Backup-lifetime POI markers (hospitals, fire stations, ...) ───────────
+    var STATE_COLOR = {{ Operational: '#2ecc71', Depleting: '#f39c12', Dead: '#8a8a8a', Rebooting: '#8a5cf6' }};
+    var STATE_ORDER = ['Operational', 'Depleting', 'Rebooting', 'Dead'];
+    var RING_R    = {{ power: 13, water: 18 }};   // power inner, water outer — visual.md §6
+    var RING_CIRC = {{ power: 2 * Math.PI * RING_R.power, water: 2 * Math.PI * RING_R.water }};
+
+    function buildBackupIconHtml(uid, shapeKind) {{
+      var ringsHtml = '';
+      ['power', 'water'].forEach(function (res) {{
+        var r = RING_R[res];
+        var color = (RESOURCE_RING_META[res] || {{}}).color || '#888888';
+        ringsHtml += '<circle cx="22" cy="22" r="' + r + '" fill="none" stroke="#444a58" stroke-width="2.5" opacity="0.35"/>';
+        ringsHtml += '<circle id="ring-' + uid + '-' + res + '" cx="22" cy="22" r="' + r
+                    + '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linecap="round"'
+                    + ' transform="rotate(-90 22 22)"/>';
+      }});
+      var shapeHtml = (shapeKind === 'triangle')
+        ? '<polygon id="marker-' + uid + '" points="22,14 15,27 29,27" fill="#2ecc71" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>'
+        : '<circle id="marker-' + uid + '" cx="22" cy="22" r="8" fill="#2ecc71" stroke="#fff" stroke-width="1.6"/>';
+      return '<svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">' + ringsHtml + shapeHtml + '</svg>';
+    }}
+
+    var backupMarkers = {{}};  // poiType -> [{{marker, els: {{shape, ringPower, ringWater}}}}, ...]
+    var selectedBackup = null;  // {{poiType, idx}} or null
+
+    Object.keys(BACKUP_POIS).forEach(function (poiType) {{
+      var layer = BACKUP_POIS[poiType];
+      var group = L.layerGroup().addTo(map);
+      backupMarkers[poiType] = layer.points.map(function (pt, idx) {{
+        var uid = poiType + '-' + idx;
+        var icon = L.divIcon({{
+          className: 'backup-marker-icon',
+          html: buildBackupIconHtml(uid, layer.shape),
+          iconSize: [44, 44],
+          iconAnchor: [22, 22]
+        }});
+        var marker = L.marker([pt.lat, pt.lon], {{ icon: icon }});
+        marker.bindTooltip(pt.name);
+        marker.on('click', function () {{
+          selectedBackup = {{ poiType: poiType, idx: idx }};
+          updateBackupPanel(currentFrame);
+        }});
+        marker.addTo(group);
+
+        var root = marker.getElement();
+        var els = {{
+          shape:     root ? root.querySelector('#marker-' + uid) : null,
+          ringPower: root ? root.querySelector('#ring-' + uid + '-power') : null,
+          ringWater: root ? root.querySelector('#ring-' + uid + '-water') : null
+        }};
+        return {{ marker: marker, els: els }};
+      }});
+    }});
+
+    function updateBackupMarkers(hour) {{
+      Object.keys(BACKUP_POIS).forEach(function (poiType) {{
+        var layer = BACKUP_POIS[poiType];
+        var markers = backupMarkers[poiType] || [];
+        markers.forEach(function (m, idx) {{
+          var poi = layer.pois[idx];
+          var state = poi.state_by_hour[hour];
+          if (m.els.shape) {{
+            m.els.shape.setAttribute('fill', STATE_COLOR[state]);
+            m.els.shape.classList.toggle('backup-blinking', state === 'Rebooting');
+          }}
+          var ringEls = {{ power: m.els.ringPower, water: m.els.ringWater }};
+          Object.keys(ringEls).forEach(function (res) {{
+            var dep = poi.deps[res];
+            var ringEl = ringEls[res];
+            if (!dep || !ringEl) return;
+            var frac = dep.fraction_by_hour[hour];
+            var circ = RING_CIRC[res];
+            ringEl.setAttribute('stroke-dasharray', circ);
+            ringEl.setAttribute('stroke-dashoffset', circ * (1 - frac));
+            ringEl.setAttribute('stroke', frac <= 0 ? '#5a5a5a' : ((RESOURCE_RING_META[res] || {{}}).color || '#888888'));
+          }});
+        }});
+      }});
+    }}
+
+    function pctStr(x) {{ return Math.round(x * 100) + '%'; }}
+
+    var backupPanelEl = document.getElementById('backup-panel');
+
+    function updateBackupPanel(hour) {{
+      if (!selectedBackup) {{ backupPanelEl.style.display = 'none'; return; }}
+      var layer = BACKUP_POIS[selectedBackup.poiType];
+      var poi = layer ? layer.pois[selectedBackup.idx] : null;
+      var pt  = layer ? layer.points[selectedBackup.idx] : null;
+      if (!poi || !pt) {{ backupPanelEl.style.display = 'none'; return; }}
+
+      var state = poi.state_by_hour[hour];
+      var flooded = poi.flooded_by_hour ? !!poi.flooded_by_hour[hour] : false;
+      var html = '<h4>' + pt.name + '</h4>';
+      html += '<div class="row"><span>State</span><b style="color:' + STATE_COLOR[state] + '">' + state + '</b></div>';
+      html += '<div class="row"><span>Facility itself flooded</span><span>' + (flooded ? 'yes' : 'no') + '</span></div>';
+
+      var restartNotes = [];
+      Object.keys(poi.deps).forEach(function (res) {{
+        var dep = poi.deps[res];
+        var buffer   = dep.buffer_by_hour[hour];
+        var capacity = dep.capacity;
+        var frac     = capacity ? buffer / capacity : 0;
+        var connected = dep.connected_by_hour[hour];
+        var label = (RESOURCE_RING_META[res] || {{}}).label || res;
+
+        var dynLabel;
+        if (state === 'Dead' || state === 'Rebooting') dynLabel = 'frozen';
+        else if (connected) dynLabel = (buffer < capacity ? 'refilling' : 'full');
+        else dynLabel = 'decaying';
+
+        html += '<div class="row"><span>' + label + '</span><span>' + (connected ? 'connected' : 'down') + '</span></div>';
+        html += '<div class="row"><span>Buffer</span><span>' + Math.round(buffer * 10) / 10 + ' / ' + capacity
+              + ' (' + pctStr(frac) + ', ' + dynLabel + ')</span></div>';
+
+        if (!(connected || frac > RESTART_THRESHOLD)) {{
+          restartNotes.push(label + ' ' + pctStr(frac) + ' &le; ' + pctStr(RESTART_THRESHOLD) + ', still disconnected');
+        }}
+      }});
+
+      if (state === 'Dead') {{
+        if (flooded) {{
+          html += '<div class="hint">Restart blocked &mdash; the facility\\'s own site is still flooded; '
+                + 'no backup reserve can restore it while submerged, regardless of buffer levels.</div>';
+        }} else if (restartNotes.length) {{
+          html += '<div class="hint">Restart blocked &mdash; ' + restartNotes.join('; ') + '.</div>';
+        }}
+      }}
+      if (state === 'Rebooting') {{
+        var rt = poi.reboot_timer_by_hour[hour];
+        html += '<div class="row"><span>Reboot progress</span><span>' + rt + ' / ' + poi.recharge_delay + ' h</span></div>';
+        html += '<div class="hint">~' + (poi.recharge_delay - rt) + ' h until back online.</div>';
+      }}
+      html += '<div class="hint">Click another facility to switch selection.</div>';
+      backupPanelEl.innerHTML = html;
+      backupPanelEl.style.display = 'block';
+    }}
+
+    function backupStateCountsHtml(poiType) {{
+      return '<span class="backup-state-counts" id="backup-counts-' + poiType + '">' +
+        STATE_ORDER.map(function (s) {{
+          return '<span style="color:' + STATE_COLOR[s] + '">' + s.charAt(0) + ':<b id="backup-count-' + poiType + '-' + s + '">0</b></span>';
+        }}).join('') +
+      '</span>';
+    }}
+
+    function updateBackupCounts(hour) {{
+      Object.keys(BACKUP_POIS).forEach(function (poiType) {{
+        var counts = {{ Operational: 0, Depleting: 0, Rebooting: 0, Dead: 0 }};
+        BACKUP_POIS[poiType].pois.forEach(function (poi) {{ counts[poi.state_by_hour[hour]]++; }});
+        STATE_ORDER.forEach(function (s) {{
+          var el = document.getElementById('backup-count-' + poiType + '-' + s);
+          if (el) el.textContent = counts[s];
+        }});
+      }});
+    }}
+
     var facilityPanelEl = document.getElementById('facility-panel');
-    if (FACILITY_TYPES.length > 0 || CONNECTION_TYPES.length > 0) {{
+    if (FACILITY_TYPES.length > 0 || CONNECTION_TYPES.length > 0 || Object.keys(BACKUP_POIS).length > 0) {{
       facilityPanelEl.style.display = 'block';
       var panelHtml = FACILITY_TYPES.map(function (meta) {{
         return '<div class="facility-row">' +
@@ -685,6 +885,14 @@ _ANIMATION_HTML_TEMPLATE = """\
                  '<span class="facility-count" id="facility-count-' + meta.key + '">–</span>' +
                '</div>';
       }}).join('');
+      if (Object.keys(BACKUP_POIS).length > 0) {{
+        panelHtml += '<div class="panel-subheader">Backup-lifetime facilities</div>';
+        panelHtml += Object.keys(BACKUP_POIS).map(function (poiType) {{
+          return '<div class="facility-row">' +
+                   '<span class="facility-label">' + poiType.replace('_', ' ') + '</span>' +
+                 '</div>' + backupStateCountsHtml(poiType);
+        }}).join('');
+      }}
       if (CONNECTION_TYPES.length > 0) {{
         panelHtml += '<div class="panel-subheader">Connections</div>';
         panelHtml += CONNECTION_TYPES.map(function (meta) {{
@@ -803,6 +1011,13 @@ _ANIMATION_HTML_TEMPLATE = """\
 
       // Update NCNN connection status (power/water dependency links)
       updateConnectionLines(stageIdx);
+
+      // Update backup-lifetime facilities — hourly resolution, uses frame
+      // directly rather than stageIdx (buffer depletion is a per-hour process
+      // a 50-stage lookup can't approximate).
+      updateBackupMarkers(frame);
+      updateBackupCounts(frame);
+      updateBackupPanel(frame);
 
       // Update time label
       var day     = Math.floor(frame / 24) + 1;
@@ -1085,6 +1300,85 @@ def _connection_layers_to_js(
     )
 
 
+def _backup_layers_to_js(
+    backup_layers: Optional[Dict[str, Dict]],
+) -> str:
+    """Serialise per-facility backup-lifetime simulation results (see
+    ``utils.backup_lifetime.compute_backup_lifetime``) into the JS literal
+    consumed by the animation template.
+
+    Each entry in *backup_layers* has the shape::
+
+        {
+            "hospital": {
+                "gdf": <GeoDataFrame>,              # geometry + optional "name"
+                "shape": "circle" | "triangle",
+                "cfg": {"recharge_delay": int,
+                        "resources": {resource: {"capacity": float, ...}}},
+                "backup": [<simulate_backup_lifetime_for_poi() result>, ...],  # aligned with gdf rows
+            },
+            "fire_station": {...},
+        }
+
+    Unlike facility/connection layers (still stage-resolution), this data is
+    hourly throughout — buffer depletion is a per-hour process that a 50-stage
+    lookup can't approximate.
+
+    Returns
+    -------
+    str
+        JSON literal: ``{poi_type: {"shape": str, "points": [{lat,lon,name}, ...],
+        "pois": [{"state_by_hour", "reboot_timer_by_hour", "flooded_by_hour",
+        "recharge_delay", "deps": {resource: {"capacity", "buffer_by_hour",
+        "fraction_by_hour", "connected_by_hour"}}}, ...]}}``.
+    """
+    if not backup_layers:
+        return "{}"
+
+    out: Dict[str, Dict] = {}
+    for poi_type, layer in backup_layers.items():
+        gdf = layer["gdf"]
+        cfg = layer["cfg"]
+        backup_rows = layer["backup"]
+
+        points: List[Dict] = []
+        for _, row in gdf.iterrows():
+            centroid = row.geometry.centroid
+            name = row.get("name") if "name" in row.index else None
+            name = str(name) if name is not None and pd.notna(name) else poi_type
+            points.append({"lat": centroid.y, "lon": centroid.x, "name": name})
+
+        pois_js: List[Dict] = []
+        for sim in backup_rows:
+            deps: Dict[str, Dict] = {}
+            for resource, resource_cfg in cfg["resources"].items():
+                capacity = resource_cfg["capacity"]
+                buffer_by_hour = sim["buffer_by_hour"][resource]
+                deps[resource] = {
+                    "capacity": capacity,
+                    "buffer_by_hour": buffer_by_hour,
+                    "fraction_by_hour": [
+                        (b / capacity if capacity else 0.0) for b in buffer_by_hour
+                    ],
+                    "connected_by_hour": sim["connected_by_hour"][resource],
+                }
+            pois_js.append({
+                "state_by_hour": sim["state_by_hour"],
+                "reboot_timer_by_hour": sim["reboot_timer_by_hour"],
+                "flooded_by_hour": sim["flooded_by_hour"],
+                "recharge_delay": cfg["recharge_delay"],
+                "deps": deps,
+            })
+
+        out[poi_type] = {
+            "shape": layer.get("shape", "circle"),
+            "points": points,
+            "pois": pois_js,
+        }
+
+    return json.dumps(out, separators=(",", ":"))
+
+
 def build_flood_animation_html(
     boundary_geom: "BaseGeometry",
     stages: List[Dict],
@@ -1093,6 +1387,9 @@ def build_flood_animation_html(
     center_lon: float = 6.649,
     facility_layers: Optional[Dict[str, Dict]] = None,
     connection_layers: Optional[Dict[str, Dict]] = None,
+    backup_layers: Optional[Dict[str, Dict]] = None,
+    resource_ring_meta: Optional[Dict[str, Dict]] = None,
+    restart_threshold: float = 0.15,
 ) -> Path:
     """Generate a self-contained HTML flood simulation animation file.
 
@@ -1134,6 +1431,30 @@ def build_flood_animation_html(
         polyline that dims to grey for stages where the connection is dead
         (per :func:`css_geodata_service.robustness_of_accessibility.utils.flood_status.compute_dependency_status_by_stage`).
         Omit (default ``None``) to draw no connection lines.
+    backup_layers : dict, optional
+        ``{poi_type: {"gdf": GeoDataFrame, "shape": "circle" | "triangle",
+        "cfg": {...}, "backup": [...]}}`` — see
+        :func:`_backup_layers_to_js` for the exact shape, and
+        :func:`css_geodata_service.robustness_of_accessibility.utils.backup_lifetime.compute_backup_lifetime`
+        for how to produce the ``"backup"`` entries. When provided, each POI
+        type is rendered with the full Logic.md/visual.md treatment — 4-state
+        marker color, shape-by-type, dual reserve rings, blink-only
+        `Rebooting`, and a click-to-inspect panel — **instead of** the plain
+        ``facility_layers`` marker for that same type. Resolution is hourly
+        throughout, not stage-based (buffer depletion needs it). Omit
+        (default ``None``) to reproduce the animation without backup-lifetime
+        facilities.
+    resource_ring_meta : dict, optional
+        ``{resource: {"label": str, "color": str}}`` for the two reserve
+        rings, e.g. ``{"power": {"label": "Power", "color": "#FF8C00"},
+        "water": {"label": "Water", "color": "#00AEEF"}}``. Defaults to
+        exactly that pairing if omitted (matches the demo prototype and
+        visual.md §5).
+    restart_threshold : float
+        Hysteresis guard fraction shown in the click panel's Restart
+        Viability readout (Logic.md §4/§5) — purely a display value here,
+        the actual gate was already applied when *backup_layers* was
+        computed.
 
     Returns
     -------
@@ -1143,12 +1464,7 @@ def build_flood_animation_html(
     # ------------------------------------------------------------------
     # 1. Build the stage-for-hour lookup (336 entries)
     # ------------------------------------------------------------------
-    stage_for_hour = [
-        get_stage_for_progress(
-            stages, compute_hourly_flood_progress(h)
-        )["stage_index"]
-        for h in range(SIMULATION_HOURS)
-    ]
+    stage_for_hour = build_stage_for_hour(stages)
 
     # ------------------------------------------------------------------
     # 2. Simplify boundary geometry for compact embedding
@@ -1181,6 +1497,17 @@ def build_flood_animation_html(
     )
 
     # ------------------------------------------------------------------
+    # 4c. Serialise backup-lifetime POI layers (optional)
+    # ------------------------------------------------------------------
+    backup_pois_js = _backup_layers_to_js(backup_layers)
+    resource_ring_meta = resource_ring_meta or {
+        "power": {"label": "Power", "color": "#FF8C00"},
+        "water": {"label": "Water", "color": "#00AEEF"},
+    }
+    resource_ring_meta_js = json.dumps(resource_ring_meta, separators=(",", ":"))
+    restart_threshold_js = json.dumps(restart_threshold)
+
+    # ------------------------------------------------------------------
     # 5. Inject into template and write
     # ------------------------------------------------------------------
     html = _ANIMATION_HTML_TEMPLATE
@@ -1189,6 +1516,9 @@ def build_flood_animation_html(
     html = html.replace("__STAGE_HOURS__",       stage_hours_js)
     html = html.replace("__CENTER_LAT__",        str(round(center_lat, 4)))
     html = html.replace("__CENTER_LON__",        str(round(center_lon, 4)))
+    html = html.replace("__BACKUP_POIS__",       backup_pois_js)
+    html = html.replace("__RESOURCE_RING_META__", resource_ring_meta_js)
+    html = html.replace("__RESTART_THRESHOLD__", restart_threshold_js)
     html = html.replace("__FACILITY_TYPES__",    facility_types_js)
     html = html.replace("__FACILITY_POINTS__",   facility_points_js)
     html = html.replace("__FACILITY_FLOODED__",  facility_flooded_js)
