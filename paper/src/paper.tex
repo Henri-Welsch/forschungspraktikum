@@ -21,12 +21,36 @@
 % Document
 \begin{document}
 
-    % Front Matter
-    \input{matters/body/formulary}
-    \input{matters/body/test}
+    \title{Title} % TODO: Set Title
+    \author{Joé Welsch \and Van Bao Nguyen}
+    \authorrunning{J. Welsch and V. B. Nguyen}
+    \institute{Universität Trier, Universitätsring 15, 54296 Trier, Deutschland\\
+    \email{\{s4jowels, s4vonguy\}@uni-trier.de}}
+
+    \maketitle
+
+    \begin{abstract}
+        % Paper zusammenfassung
+        % Abdeckung folgender Punkte mit je einem kurzen Satz:
+        % - Motivation
+        % - Ziel des Papers
+        % - Vorgehensweise
+        % - Wichtige Ergebnisse
+        % - Fazit
+        % - Keywords einfügen?
+    \end{abstract}
+
+    % Body
+    \input{matters/body/01_introduction}
+    \input{matters/body/02_related_works}
+    \input{matters/body/03_methodology}
+    \input{matters/body/04_implementation}
+    \input{matters/body/05_evaluation}
+    \input{matters/body/06_discussion}
+    \input{matters/body/07_conclusion}
 
     % Back Matter
     \bibliography{paper}
-    \bibliographystyle{plain}
+    \bibliographystyle{splncs04} % Updated to match project's .bst
 
 \end{document}
