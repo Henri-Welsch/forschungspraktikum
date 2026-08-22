@@ -35,7 +35,12 @@ Usage
 """
 from __future__ import annotations
 
+import json
+import logging
+from pathlib import Path
 from typing import Dict, Iterable, List
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Single-facility simulation (Logic.md §3, §6, §7)
@@ -264,4 +269,81 @@ def compute_backup_lifetime(
             )
         results[poi_type] = poi_results
 
+    return results
+
+
+def load_or_compute_backup_lifetime(
+    cache_dir: Path,
+    poi_types: Iterable[str],
+    direct_flooded_by_stage: Dict[str, List[List[bool]]],
+    dependency_status: Dict[str, Dict],
+    stage_for_hour: List[int],
+    backup_cfg: Dict[str, Dict],
+    restart_threshold: float = 0.15,
+    place_name: str = "Trier, Germany",
+    force_recompute: bool = False,
+) -> Dict[str, List[Dict]]:
+    """Cached wrapper around :func:`compute_backup_lifetime`.
+
+    Stores JSON results under ``cache_dir / "backup_lifetime" /``.
+    File name pattern::
+
+        backup_lifetime_{safe_place}_{n_hours}h.json
+
+    Parameters
+    ----------
+    cache_dir : Path
+        Processed-data directory (e.g. ``data/processed/``).
+    poi_types : iterable of str
+        Facility types to simulate, e.g. ``["hospital", "fire_station"]``.
+    direct_flooded_by_stage : dict
+        Output of direct flood status calculation.
+    dependency_status : dict
+        Output of cascading dependency status calculation.
+    stage_for_hour : list of int
+        Maps simulation hours to stage indices.
+    backup_cfg : dict
+        Capacity, loss rate, gain rate, and recharge delay configurations.
+    restart_threshold : float
+        Hysteresis guard fraction (default: 0.15).
+    place_name : str
+        Embedded in cache-file names to avoid collisions across cities.
+    force_recompute : bool
+        Ignore existing cache files and recompute.
+
+    Returns
+    -------
+    dict
+        ``{poi_type: [poi_sim_dict, ...]}``
+    """
+    backup_cache_dir = cache_dir / "backup_lifetime"
+    backup_cache_dir.mkdir(parents=True, exist_ok=True)
+
+    safe_place = place_name.replace(", ", "_").replace(" ", "_")
+    n_stages = (
+        len(direct_flooded_by_stage[next(iter(direct_flooded_by_stage))])
+        if direct_flooded_by_stage
+        else (max(stage_for_hour) + 1 if stage_for_hour else 0)
+    )
+    cache_file = (
+        backup_cache_dir
+        / f"backup_lifetime_{safe_place}_{n_stages}_{len(stage_for_hour)}h.json"
+    )
+
+    if cache_file.exists() and not force_recompute:
+        logger.info("Backup lifetime: loading cached results from %s", cache_file)
+        with open(cache_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    results = compute_backup_lifetime(
+        poi_types=poi_types,
+        direct_flooded_by_stage=direct_flooded_by_stage,
+        dependency_status=dependency_status,
+        stage_for_hour=stage_for_hour,
+        backup_cfg=backup_cfg,
+        restart_threshold=restart_threshold,
+    )
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2)
+    logger.info("Backup lifetime: results cached to %s", cache_file)
     return results

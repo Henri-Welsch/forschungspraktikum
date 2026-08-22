@@ -1,5 +1,6 @@
 import logging
 import time
+from pathlib import Path
 from typing import List, Dict
 import numpy as np
 import osmnx as ox
@@ -92,6 +93,8 @@ def add_postion_to_hospitals_and_filter(
 def prepare_services(services: gpd.GeoDataFrame, drive_service_graph) -> gpd.GeoDataFrame:
     logger.info("Prepare services")
     services = services.copy(deep=True)
+    if "position" not in services.columns:
+        services["position"] = services.geometry.centroid
     services["nearest_node_id"] = services["position"].apply(
         lambda point: get_nearest_node_id(point=point, graph=drive_service_graph)
     )
@@ -194,6 +197,58 @@ def draw_sample(
     df_node_samples = filtered_nodes.loc[grid_samples]
     logger.debug(f"#total samples {len(df_node_samples)}")
     return df_node_samples
+
+
+def load_or_draw_sample(
+    cache_path: Path | str,
+    polygon: Polygon,
+    gdf_nodes_drive_service_graph: gpd.GeoDataFrame,
+    number_total_samples: int | None = None,
+    sample_distance_in_meters: float | None = None,
+    random_seed: int = 42,
+    force_recompute: bool = False,
+) -> gpd.GeoDataFrame:
+    """Load spatial sample points from GeoJSON cache, or compute via
+    :func:`draw_sample` and persist to disk.
+
+    Parameters
+    ----------
+    cache_path : Path or str
+        Destination path (e.g. ``data/cache/samples/samples_trier_500.geojson``).
+    polygon : Polygon
+        Bounding study area polygon.
+    gdf_nodes_drive_service_graph : GeoDataFrame
+        Road network nodes.
+    number_total_samples : int, optional
+        Target number of samples.
+    sample_distance_in_meters : float, optional
+        Grid spacing in meters.
+    random_seed : int
+        PRNG seed for reproducible spatial sampling.
+    force_recompute : bool
+        Ignore existing cache files and recompute.
+
+    Returns
+    -------
+    GeoDataFrame
+        Sample points sampled from the network nodes.
+    """
+    cache_path = Path(cache_path)
+    if cache_path.exists() and not force_recompute:
+        logger.info("Loading spatial samples from cache %s", cache_path)
+        return gpd.read_file(cache_path)
+
+    samples = draw_sample(
+        polygon=polygon,
+        gdf_nodes_drive_service_graph=gdf_nodes_drive_service_graph,
+        number_total_samples=number_total_samples,
+        sample_distance_in_meters=sample_distance_in_meters,
+        random_seed=random_seed,
+    )
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    samples.to_file(cache_path, driver="GeoJSON")
+    logger.info("Spatial samples saved to cache %s", cache_path)
+    return samples
 
 
 def filter_samples_by_administrative_boundaries(samples, boundaries):

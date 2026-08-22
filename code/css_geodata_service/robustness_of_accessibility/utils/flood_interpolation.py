@@ -59,8 +59,9 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import geopandas as gpd
 import pandas as pd
@@ -206,6 +207,111 @@ def load_or_compute_flood_stages(
     _save_stages_to_cache(stages, cache_file)
     logger.info(
         "Flood stages: %d stages persisted to %s",
+        n_stages, cache_file,
+    )
+    return stages
+
+
+def load_or_compute_hq_raw_flood_stages(
+    cache_dir: Path,
+    hq_raw_dir: Path | str,
+    place_name: str = "Trier, Germany",
+    min_gauge_m: float = 9.0,
+    max_gauge_m: float = 11.80,
+    simplify_tolerance: float = 0.0001,
+    force_recalculate: bool = False,
+) -> List[Dict]:
+    """Load or pre-process hydrodynamic flood stage polygons from raw gauge GeoJSONs (HQ_raw).
+
+    Discovers discrete gauge stages (e.g. 9.00 m to 11.80 m in 10 cm steps), aligns CRS to
+    EPSG:4326, applies light coordinate simplification for compact storage and smooth rendering,
+    and caches the stage collection to disk.
+
+    Parameters
+    ----------
+    cache_dir : Path
+        Processed-data directory (``data/processed/``).
+    hq_raw_dir : Path or str
+        Path to directory containing raw gauge GeoJSON files (e.g. `HQ_raw`).
+    place_name : str
+        Embedded in the cache-file name to avoid collisions across cities.
+    min_gauge_m : float
+        Minimum gauge height to include (default: 9.0 m).
+    max_gauge_m : float
+        Maximum gauge height to include (default: 11.80 m for HQ100).
+    simplify_tolerance : float
+        Coordinate simplification in degrees (default 0.0001 ≈ 7m).
+    force_recalculate : bool
+        If True, ignore cache and recompute.
+
+    Returns
+    -------
+    list of dict
+        Stage entries with keys ``stage_index``, ``progress``, ``geojson``, ``gauge_height_m``.
+    """
+    raw_dir = Path(hq_raw_dir).resolve()
+    if not raw_dir.exists():
+        raise FileNotFoundError(f"HQ_raw directory not found: {raw_dir}")
+
+    all_files = sorted(list(raw_dir.glob("*.geojson")))
+    matched_files: List[Tuple[float, Path]] = []
+    for f in all_files:
+        match = re.search(r"Pegel_(\d{2})_(\d{2})m", f.name)
+        if match:
+            h = float(f"{match.group(1)}.{match.group(2)}")
+            if min_gauge_m <= h <= max_gauge_m:
+                matched_files.append((h, f))
+
+    matched_files.sort(key=lambda x: x[0])
+    n_stages = len(matched_files)
+    if n_stages == 0:
+        raise ValueError(
+            f"No gauge GeoJSON files found in {raw_dir} between {min_gauge_m}m and {max_gauge_m}m."
+        )
+
+    flood_cache_dir = Path(cache_dir) / "flood_interpolation"
+    flood_cache_dir.mkdir(parents=True, exist_ok=True)
+    safe_place = place_name.replace(", ", "_").replace(" ", "_")
+    cache_file = flood_cache_dir / f"flood_stages_hq_raw_{safe_place}_{n_stages}.geojson"
+
+    if cache_file.exists() and not force_recalculate:
+        logger.info(
+            "HQ_raw flood stages: loading %d cached stages from %s",
+            n_stages, cache_file,
+        )
+        return _load_stages_from_cache(cache_file)
+
+    logger.info(
+        "HQ_raw flood stages: processing %d stages (%.2fm to %.2fm) from %s …",
+        n_stages, min_gauge_m, max_gauge_m, raw_dir,
+    )
+
+    stages: List[Dict] = []
+    for i, (gauge_m, fpath) in enumerate(matched_files):
+        progress = i / (n_stages - 1) if n_stages > 1 else 1.0
+        gdf = gpd.read_file(fpath)
+        if gdf.crs != "EPSG:4326":
+            gdf = gdf.to_crs("EPSG:4326")
+
+        union_geom = unary_union(gdf.geometry)
+        if union_geom.is_empty:
+            geojson_geom = None
+        else:
+            if simplify_tolerance > 0:
+                union_geom = union_geom.simplify(simplify_tolerance, preserve_topology=True)
+            raw_json = json.loads(gpd.GeoSeries([union_geom], crs="EPSG:4326").to_json())
+            geojson_geom = raw_json["features"][0]["geometry"]
+
+        stages.append({
+            "stage_index": i,
+            "progress": round(progress, 6),
+            "geojson": geojson_geom,
+            "gauge_height_m": gauge_m,
+        })
+
+    _save_stages_to_cache(stages, cache_file)
+    logger.info(
+        "HQ_raw flood stages: %d stages persisted to %s",
         n_stages, cache_file,
     )
     return stages
@@ -408,17 +514,19 @@ def _save_stages_to_cache(stages: List[Dict], cache_file: Path) -> None:
     Each Feature stores stage metadata in ``properties`` and the interpolated
     flood polygon (or ``null``) as ``geometry``.
     """
-    features = [
-        {
-            "type": "Feature",
-            "properties": {
-                "stage_index": s["stage_index"],
-                "progress":    s["progress"],
-            },
-            "geometry": s["geojson"],   # GeoJSON geometry dict or null
+    features = []
+    for s in stages:
+        props = {
+            "stage_index": s["stage_index"],
+            "progress":    s["progress"],
         }
-        for s in stages
-    ]
+        if "gauge_height_m" in s:
+            props["gauge_height_m"] = s["gauge_height_m"]
+        features.append({
+            "type": "Feature",
+            "properties": props,
+            "geometry": s["geojson"],   # GeoJSON geometry dict or null
+        })
     fc = {"type": "FeatureCollection", "features": features}
     with cache_file.open("w", encoding="utf-8") as fh:
         json.dump(fc, fh, separators=(",", ":"))
@@ -429,14 +537,18 @@ def _load_stages_from_cache(cache_file: Path) -> List[Dict]:
     with cache_file.open("r", encoding="utf-8") as fh:
         fc = json.load(fh)
 
-    return [
-        {
-            "stage_index": int(feat["properties"]["stage_index"]),
-            "progress":    float(feat["properties"]["progress"]),
+    stages = []
+    for feat in fc["features"]:
+        props = feat["properties"]
+        entry = {
+            "stage_index": int(props["stage_index"]),
+            "progress":    float(props["progress"]),
             "geojson":     feat.get("geometry"),    # None for no-flood stages
         }
-        for feat in fc["features"]
-    ]
+        if "gauge_height_m" in props:
+            entry["gauge_height_m"] = float(props["gauge_height_m"])
+        stages.append(entry)
+    return stages
 
 
 # ---------------------------------------------------------------------------
@@ -511,20 +623,34 @@ _ANIMATION_HTML_TEMPLATE = """\
       padding: 4px 8px; border-radius: 5px; font-size: 13px; cursor: pointer;
     }}
 
+    /* ── Floating Overlay Columns ────────────────────────────── */
+    .panel-column {{
+      position: fixed; top: 10px; z-index: 1000;
+      display: flex; flex-direction: column; gap: 8px;
+      pointer-events: none;
+    }}
+    .panel-column > * {{
+      pointer-events: auto; box-sizing: border-box; width: 100%;
+    }}
+    .panel-column-left {{
+      left: 10px; width: 250px;
+    }}
+    .panel-column-right {{
+      right: 10px; width: 260px;
+    }}
+
     /* Info badge */
     #info-badge {{
-      position: fixed; top: 10px; left: 10px;
       background: rgba(8,8,22,0.88); color: #c8d0f0;
       padding: 8px 14px; border-radius: 6px; font-size: 13px;
-      z-index: 1000; line-height: 1.7; pointer-events: none;
+      line-height: 1.7; pointer-events: none;
     }}
 
     /* ── Facility / infrastructure panel ─────────────────────── */
     #facility-panel {{
-      position: fixed; top: 10px; right: 10px;
       background: rgba(8,8,22,0.90); color: #d8ddf0;
       padding: 10px 14px; border-radius: 6px; font-size: 12.5px;
-      z-index: 1000; line-height: 1.6; min-width: 190px;
+      line-height: 1.6;
       display: none;
     }}
     .facility-row {{ display: flex; align-items: center; gap: 7px; }}
@@ -555,27 +681,74 @@ _ANIMATION_HTML_TEMPLATE = """\
     .backup-marker-icon {{ background: none; border: none; }}
 
     #backup-panel {{
-      position: fixed; top: 10px; right: 220px;
       background: rgba(8,8,22,0.92); color: #d8ddf0;
       padding: 10px 14px; border-radius: 6px; font-size: 12.5px;
-      z-index: 1000; line-height: 1.6; width: 235px;
+      line-height: 1.6;
       display: none;
     }}
     #backup-panel h4 {{ margin: 0 0 8px 0; font-size: 13px; color: #e8ecff; }}
     #backup-panel .row {{ display: flex; justify-content: space-between; margin: 4px 0; gap: 8px; }}
     #backup-panel .hint {{ color: #8899cc; font-style: italic; margin-top: 6px; }}
+
+    /* ── RoA Resilience Panel ────────────────────────────────── */
+    #roa-panel {{
+      background: rgba(8,8,22,0.92); color: #d8ddf0;
+      padding: 10px 14px; border-radius: 6px; font-size: 12.5px;
+      line-height: 1.5;
+      display: none; border: 1px solid rgba(77, 136, 255, 0.25);
+    }}
+    .roa-badge {{
+      background: #173080; border: 1px solid #4d88ff;
+      padding: 1px 6px; border-radius: 4px; font-size: 11px; color: #fff;
+      font-weight: 600;
+    }}
+    .roa-chart-box {{
+      margin-top: 6px; width: 100%; height: 38px;
+      background: #0b0b18; border: 1px solid #23233c;
+      border-radius: 4px; overflow: hidden; position: relative;
+    }}
   </style>
 </head>
 <body>
   <div id="map"></div>
 
-  <div id="info-badge">
-    <strong>Trier &mdash; Flood Simulation</strong><br>
-    HQ100 &bull; 14-day event &bull; hourly steps
+  <div class="panel-column panel-column-left">
+    <div id="info-badge">
+      <strong>Trier &mdash; Flood Simulation</strong><br>
+      HQ100 &bull; 14-day event &bull; hourly steps
+    </div>
+
+    <div id="roa-panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+        <span style="font-weight:600; color:#4d88ff; font-size:12px;">Accessibility (RoA)</span>
+        <span class="roa-badge" id="roa-int-badge">RoA_Int: --%</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+        <span style="color:#8899cc; font-size:12px;">Current:</span>
+        <span id="roa-current-val" style="font-size:16px; font-weight:700; color:#50e3c2;">100.0%</span>
+      </div>
+      <div id="roa-type-breakdown" style="font-size:11px; color:#a0a8cc; margin-bottom:4px;">
+        <div style="display:flex; justify-content:space-between;">
+          <span>Hospitals:</span> <span id="roa-hosp-val" style="color:#e8ecff; font-weight:600;">100.0%</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span>Fire Stations:</span> <span id="roa-fire-val" style="color:#e8ecff; font-weight:600;">100.0%</span>
+        </div>
+      </div>
+      <div class="roa-chart-box">
+        <svg id="roa-svg-chart" viewBox="0 0 336 38" preserveAspectRatio="none" style="width:100%; height:100%; display:block;">
+          <path id="roa-svg-fill" d="" fill="rgba(77, 136, 255, 0.18)" />
+          <path id="roa-svg-line" d="" fill="none" stroke="#4d88ff" stroke-width="1.6" />
+          <line id="roa-playhead" x1="0" y1="0" x2="0" y2="38" stroke="#50e3c2" stroke-width="2" />
+        </svg>
+      </div>
+    </div>
   </div>
 
-  <div id="facility-panel"></div>
-  <div id="backup-panel"></div>
+  <div class="panel-column panel-column-right">
+    <div id="facility-panel"></div>
+    <div id="backup-panel"></div>
+  </div>
 
   <div id="controls">
     <!-- Phase indicator bar -->
@@ -639,6 +812,9 @@ _ANIMATION_HTML_TEMPLATE = """\
     var BACKUP_POIS        = __BACKUP_POIS__;         // {{poiType: {{shape, points:[{{lat,lon,name}}], pois:[...]}}}}
     var RESOURCE_RING_META = __RESOURCE_RING_META__;  // {{resource: {{label, color}}}}
     var RESTART_THRESHOLD  = __RESTART_THRESHOLD__;   // float, e.g. 0.15
+
+    // RoA time-dependent simulation results (optional — null when not provided)
+    var ROA_DATA           = __ROA_DATA__;
 
     // ── Map setup ────────────────────────────────────────────────────────────
     var map = L.map('map', {{ zoomControl: true }})
@@ -756,7 +932,8 @@ _ANIMATION_HTML_TEMPLATE = """\
         }});
         var marker = L.marker([pt.lat, pt.lon], {{ icon: icon }});
         marker.bindTooltip(pt.name);
-        marker.on('click', function () {{
+        marker.on('click', function (e) {{
+          if (e && e.originalEvent) e.originalEvent.stopPropagation();
           selectedBackup = {{ poiType: poiType, idx: idx }};
           updateBackupPanel(currentFrame);
         }});
@@ -770,6 +947,13 @@ _ANIMATION_HTML_TEMPLATE = """\
         }};
         return {{ marker: marker, els: els }};
       }});
+    }});
+
+    map.on('click', function () {{
+      if (selectedBackup) {{
+        selectedBackup = null;
+        updateBackupPanel(currentFrame);
+      }}
     }});
 
     function updateBackupMarkers(hour) {{
@@ -803,11 +987,30 @@ _ANIMATION_HTML_TEMPLATE = """\
     var backupPanelEl = document.getElementById('backup-panel');
 
     function updateBackupPanel(hour) {{
-      if (!selectedBackup) {{ backupPanelEl.style.display = 'none'; return; }}
+      if (Object.keys(BACKUP_POIS).length === 0) {{
+        backupPanelEl.style.display = 'none';
+        return;
+      }}
+      if (!selectedBackup) {{
+        var html = '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">' +
+                   '<h4 style="margin:0; font-size:13px; color:#e8ecff;">POI Inspector</h4>' +
+                   '<span style="font-size:10.5px; color:#8899cc; background:rgba(255,255,255,0.06); padding:1px 5px; border-radius:3px;">No selection</span>' +
+                   '</div>';
+        html += '<div class="hint" style="margin-top:0; color:#b0b8dc; line-height:1.45;">' +
+                'Click any <b>hospital</b> or <b>fire station</b> on the map to inspect its real-time state, backup power & water buffers, and infrastructure connectivity.' +
+                '</div>';
+        backupPanelEl.innerHTML = html;
+        backupPanelEl.style.display = 'block';
+        return;
+      }}
       var layer = BACKUP_POIS[selectedBackup.poiType];
       var poi = layer ? layer.pois[selectedBackup.idx] : null;
       var pt  = layer ? layer.points[selectedBackup.idx] : null;
-      if (!poi || !pt) {{ backupPanelEl.style.display = 'none'; return; }}
+      if (!poi || !pt) {{
+        selectedBackup = null;
+        updateBackupPanel(hour);
+        return;
+      }}
 
       var state = poi.state_by_hour[hour];
       var flooded = poi.flooded_by_hour ? !!poi.flooded_by_hour[hour] : false;
@@ -962,6 +1165,64 @@ _ANIMATION_HTML_TEMPLATE = """\
       }});
     }}
 
+    // ── RoA Resilience Indicator & Chart ──────────────────────────────────────
+    if (ROA_DATA) {{
+      var roaPanel = document.getElementById('roa-panel');
+      if (roaPanel) roaPanel.style.display = 'block';
+
+      var intBadge = document.getElementById('roa-int-badge');
+      if (intBadge && ROA_DATA.roa_int_combined !== undefined) {{
+        intBadge.textContent = 'RoA_Int: ' + (ROA_DATA.roa_int_combined * 100).toFixed(1) + '%';
+      }}
+
+      var svgLine = document.getElementById('roa-svg-line');
+      var svgFill = document.getElementById('roa-svg-fill');
+      if (svgLine && svgFill && ROA_DATA.roa_combined) {{
+        var pts = [];
+        var nH = ROA_DATA.roa_combined.length;
+        for (var h = 0; h < nH; h++) {{
+          var val = ROA_DATA.roa_combined[h];
+          var y = 35 - (val * 32);
+          pts.push(h + ',' + y.toFixed(1));
+        }}
+        var linePath = 'M ' + pts.join(' L ');
+        svgLine.setAttribute('d', linePath);
+        var fillPath = linePath + ' L ' + (nH - 1) + ',38 L 0,38 Z';
+        svgFill.setAttribute('d', fillPath);
+      }}
+    }}
+
+    function updateRoAPanel(frame) {{
+      if (!ROA_DATA) return;
+      var val = (ROA_DATA.roa_combined && ROA_DATA.roa_combined[frame] !== undefined)
+        ? ROA_DATA.roa_combined[frame]
+        : 1.0;
+      var curEl = document.getElementById('roa-current-val');
+      if (curEl) {{
+        curEl.textContent = (val * 100).toFixed(1) + '%';
+        if (val >= 0.80) curEl.style.color = '#50e3c2';
+        else if (val >= 0.50) curEl.style.color = '#ffaa00';
+        else curEl.style.color = '#ff4d4d';
+      }}
+
+      if (ROA_DATA.roa_by_type) {{
+        if (ROA_DATA.roa_by_type.hospital && document.getElementById('roa-hosp-val')) {{
+          var hVal = ROA_DATA.roa_by_type.hospital[frame];
+          document.getElementById('roa-hosp-val').textContent = (hVal * 100).toFixed(1) + '%';
+        }}
+        if (ROA_DATA.roa_by_type.fire_station && document.getElementById('roa-fire-val')) {{
+          var fVal = ROA_DATA.roa_by_type.fire_station[frame];
+          document.getElementById('roa-fire-val').textContent = (fVal * 100).toFixed(1) + '%';
+        }}
+      }}
+
+      var playhead = document.getElementById('roa-playhead');
+      if (playhead) {{
+        playhead.setAttribute('x1', frame);
+        playhead.setAttribute('x2', frame);
+      }}
+    }}
+
     // ── Phase meta ───────────────────────────────────────────────────────────
     var PHASE_LABELS  = [
       'Pre-event',
@@ -1018,6 +1279,7 @@ _ANIMATION_HTML_TEMPLATE = """\
       updateBackupMarkers(frame);
       updateBackupCounts(frame);
       updateBackupPanel(frame);
+      updateRoAPanel(frame);
 
       // Update time label
       var day     = Math.floor(frame / 24) + 1;
@@ -1390,6 +1652,7 @@ def build_flood_animation_html(
     backup_layers: Optional[Dict[str, Dict]] = None,
     resource_ring_meta: Optional[Dict[str, Dict]] = None,
     restart_threshold: float = 0.15,
+    roa_data: Optional[Dict[str, Any]] = None,
 ) -> Path:
     """Generate a self-contained HTML flood simulation animation file.
 
@@ -1455,6 +1718,11 @@ def build_flood_animation_html(
         Viability readout (Logic.md §4/§5) — purely a display value here,
         the actual gate was already applied when *backup_layers* was
         computed.
+    roa_data : dict, optional
+        ``{hours: [...], roa_combined: [...], roa_by_type: {...}, roa_int_combined: float}``
+        from :func:`load_or_compute_dynamic_roa`. When provided, displays a synchronized
+        live RoA status HUD, service breakdown, total RoA_Int resilience score, and
+        an animated timeline sparkline chart. Omit (default ``None``) to omit the panel.
 
     Returns
     -------
@@ -1506,6 +1774,9 @@ def build_flood_animation_html(
     }
     resource_ring_meta_js = json.dumps(resource_ring_meta, separators=(",", ":"))
     restart_threshold_js = json.dumps(restart_threshold)
+    roa_data_js = (
+        json.dumps(roa_data, separators=(",", ":")) if roa_data is not None else "null"
+    )
 
     # ------------------------------------------------------------------
     # 5. Inject into template and write
@@ -1519,6 +1790,7 @@ def build_flood_animation_html(
     html = html.replace("__BACKUP_POIS__",       backup_pois_js)
     html = html.replace("__RESOURCE_RING_META__", resource_ring_meta_js)
     html = html.replace("__RESTART_THRESHOLD__", restart_threshold_js)
+    html = html.replace("__ROA_DATA__",          roa_data_js)
     html = html.replace("__FACILITY_TYPES__",    facility_types_js)
     html = html.replace("__FACILITY_POINTS__",   facility_points_js)
     html = html.replace("__FACILITY_FLOODED__",  facility_flooded_js)

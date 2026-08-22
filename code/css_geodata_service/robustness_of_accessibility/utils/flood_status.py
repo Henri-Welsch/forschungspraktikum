@@ -41,7 +41,9 @@ Usage
 """
 from __future__ import annotations
 
+import json
 import logging
+from pathlib import Path
 from typing import Dict, List, Optional
 
 import geopandas as gpd
@@ -287,4 +289,113 @@ def compute_dependency_status_by_stage(
         "Dependency status computed for POI types: %s (infra types: %s)",
         list(connections.keys()), list(infrastructure_gdfs.keys()),
     )
+    return results
+
+
+def load_or_compute_flood_status_by_stage(
+    cache_dir: Path,
+    facility_gdfs: Dict[str, gpd.GeoDataFrame],
+    stages: List[Dict],
+    place_name: str = "Trier, Germany",
+    force_recompute: bool = False,
+) -> Dict[str, List[List[bool]]]:
+    """Cached wrapper around :func:`compute_flood_status_by_stage`.
+
+    Stores JSON results under ``cache_dir / "flood_status" /``.
+    File name pattern::
+
+        direct_flood_status_{safe_place}_{n_stages}.json
+
+    Parameters
+    ----------
+    cache_dir : Path
+        Processed-data directory (e.g. ``data/processed/``).
+    facility_gdfs : dict
+        ``{facility_type: GeoDataFrame}``
+    stages : list of dict
+        Pre-computed flood stages list.
+    place_name : str
+        Embedded in cache-file names to avoid collisions across cities.
+    force_recompute : bool
+        Ignore existing cache files and recompute.
+
+    Returns
+    -------
+    dict
+        ``{facility_type: [[bool, ...], ...]}``
+    """
+    status_cache_dir = cache_dir / "flood_status"
+    status_cache_dir.mkdir(parents=True, exist_ok=True)
+
+    safe_place = place_name.replace(", ", "_").replace(" ", "_")
+    cache_file = status_cache_dir / f"direct_flood_status_{safe_place}_{len(stages)}.json"
+
+    if cache_file.exists() and not force_recompute:
+        logger.info("Direct flood status: loading cached results from %s", cache_file)
+        with open(cache_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    results = compute_flood_status_by_stage(facility_gdfs=facility_gdfs, stages=stages)
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2)
+    logger.info("Direct flood status: results cached to %s", cache_file)
+    return results
+
+
+def load_or_compute_dependency_status_by_stage(
+    cache_dir: Path,
+    infrastructure_gdfs: Dict[str, gpd.GeoDataFrame],
+    connections: Dict[str, Dict[str, gpd.GeoDataFrame]],
+    direct_flooded_by_stage: Dict[str, List[List[bool]]],
+    place_name: str = "Trier, Germany",
+    force_recompute: bool = False,
+) -> Dict[str, Dict]:
+    """Cached wrapper around :func:`compute_dependency_status_by_stage`.
+
+    Stores JSON results under ``cache_dir / "flood_status" /``.
+    File name pattern::
+
+        dependency_status_{safe_place}_{n_stages}.json
+
+    Parameters
+    ----------
+    cache_dir : Path
+        Processed-data directory (e.g. ``data/processed/``).
+    infrastructure_gdfs : dict
+        ``{infra_type: GeoDataFrame}``
+    connections : dict
+        ``{poi_type: {infra_type: GeoDataFrame}}``
+    direct_flooded_by_stage : dict
+        Output of direct flood status calculation.
+    place_name : str
+        Embedded in cache-file names to avoid collisions across cities.
+    force_recompute : bool
+        Ignore existing cache files and recompute.
+
+    Returns
+    -------
+    dict
+        ``{poi_type: {"dead_by_stage": ..., "connections": ...}}``
+    """
+    status_cache_dir = cache_dir / "flood_status"
+    status_cache_dir.mkdir(parents=True, exist_ok=True)
+
+    safe_place = place_name.replace(", ", "_").replace(" ", "_")
+    first_type_stages = next(iter(direct_flooded_by_stage.values())) if direct_flooded_by_stage else []
+    n_stages = len(first_type_stages)
+    cache_file = status_cache_dir / f"dependency_status_{safe_place}_{n_stages}.json"
+
+    if cache_file.exists() and not force_recompute:
+        logger.info("Dependency status: loading cached results from %s", cache_file)
+        with open(cache_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    results = compute_dependency_status_by_stage(
+        infrastructure_gdfs=infrastructure_gdfs,
+        connections=connections,
+        direct_flooded_by_stage=direct_flooded_by_stage,
+    )
+    with open(cache_file, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2)
+    logger.info("Dependency status: results cached to %s", cache_file)
     return results
