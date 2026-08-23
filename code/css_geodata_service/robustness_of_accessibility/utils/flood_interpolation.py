@@ -227,6 +227,9 @@ def load_or_compute_hq_raw_flood_stages(
     EPSG:4326, applies light coordinate simplification for compact storage and smooth rendering,
     and caches the stage collection to disk.
 
+    The current provided data inside ``HQ_raw`` covers the Trier, Germany area and includes
+    gauge heights starting at 9.00 m and goes up to a maximum of 12.70 m.
+
     Parameters
     ----------
     cache_dir : Path
