@@ -135,6 +135,9 @@ def compute_dynamic_roa(
     roa_by_type: Dict[str, List[float]] = {ptype: [] for ptype in poi_types}
     roa_combined: List[float] = []
     hourly_active_count: Dict[str, List[int]] = {ptype: [] for ptype in poi_types}
+    peak_stage_idx = max(stage_for_hour)
+    peak_hour = int(np.where(np.array(stage_for_hour) == peak_stage_idx)[0][0])
+    peak_sample_ratios_by_type: Dict[str, List[float]] = {}
 
     for t in range(n_hours):
         k = stage_for_hour[t]
@@ -181,6 +184,9 @@ def compute_dynamic_roa(
 
                 sample_ratios[s_idx] = ratio
 
+            if t == peak_hour:
+                peak_sample_ratios_by_type[ptype] = sample_ratios.tolist()
+
             # Aggregate RoA for this POI type at hour t
             type_roa_score = float(np.sum(sample_ratios * weights_arr))
             roa_by_type[ptype].append(type_roa_score)
@@ -189,6 +195,11 @@ def compute_dynamic_roa(
         # Weighted combined RoA at hour t
         comb_score = sum(poi_weights[ptype] * hourly_type_scores[ptype] for ptype in poi_types)
         roa_combined.append(comb_score)
+
+    peak_sample_ratios_combined = [
+        float(sum(poi_weights[ptype] * peak_sample_ratios_by_type[ptype][i] for ptype in poi_types))
+        for i in range(n_samples)
+    ]
 
     # 5. Compute time-integrated resilience indices (trapezoidal rule / mean across horizon)
     roa_int_by_type: Dict[str, float] = {
@@ -212,6 +223,9 @@ def compute_dynamic_roa(
         "hourly_active_count": hourly_active_count,
         "total_facility_count": {ptype: len(gdf) for ptype, gdf in poi_gdfs.items()},
         "n_samples": n_samples,
+        "peak_hour": peak_hour,
+        "peak_sample_ratios_by_type": peak_sample_ratios_by_type,
+        "peak_sample_ratios_combined": peak_sample_ratios_combined,
     }
 
 

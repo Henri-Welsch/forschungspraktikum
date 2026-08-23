@@ -646,7 +646,7 @@ _ANIMATION_HTML_TEMPLATE = """\
     #info-badge {{
       background: rgba(8,8,22,0.88); color: #c8d0f0;
       padding: 8px 14px; border-radius: 6px; font-size: 13px;
-      line-height: 1.7; pointer-events: none;
+      line-height: 1.7; pointer-events: auto;
     }}
 
     /* ── Facility / infrastructure panel ─────────────────────── */
@@ -719,6 +719,21 @@ _ANIMATION_HTML_TEMPLATE = """\
     <div id="info-badge">
       <strong>Trier &mdash; Flood Simulation</strong><br>
       HQ100 &bull; 14-day event &bull; hourly steps
+      <div id="scenario-selector" style="margin-top:8px; border-top:1px solid rgba(255,255,255,0.15); padding-top:6px; pointer-events:auto;">
+        <div style="font-size:10.5px; text-transform:uppercase; color:#8899cc; margin-bottom:5px; font-weight:600; letter-spacing:0.5px;">Scenario (Hot-Swap)</div>
+        <label style="display:flex; align-items:center; gap:6px; font-size:11.5px; margin-bottom:3px; cursor:pointer; color:#d8ddf0;">
+          <input type="radio" name="tier_select" value="Level_A" onchange="switchTier('Level_A')"> <span>Level A: Road Baseline</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; font-size:11.5px; margin-bottom:3px; cursor:pointer; color:#d8ddf0;">
+          <input type="radio" name="tier_select" value="Level_B1" onchange="switchTier('Level_B1')"> <span>Level B1: Power Cascade</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; font-size:11.5px; margin-bottom:3px; cursor:pointer; color:#d8ddf0;">
+          <input type="radio" name="tier_select" value="Level_B2" onchange="switchTier('Level_B2')"> <span>Level B2: Water Cascade</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; font-size:11.5px; margin-bottom:3px; cursor:pointer; color:#d8ddf0;">
+          <input type="radio" name="tier_select" value="Level_C" checked onchange="switchTier('Level_C')"> <span>Level C: Compound Failure</span>
+        </label>
+      </div>
     </div>
 
     <div id="roa-panel">
@@ -818,6 +833,11 @@ _ANIMATION_HTML_TEMPLATE = """\
 
     // RoA time-dependent simulation results (optional — null when not provided)
     var ROA_DATA           = __ROA_DATA__;
+
+    // Multi-tier simulation bundle (optional — null when not provided)
+    var MULTI_TIER_DATA    = __MULTI_TIER_DATA__;
+    var MULTI_TIER_POIS    = __MULTI_TIER_POIS__;
+    var currentTier        = 'Level_C';
 
     // ── Map setup ────────────────────────────────────────────────────────────
     var map = L.map('map', {{ zoomControl: true }})
@@ -1169,7 +1189,8 @@ _ANIMATION_HTML_TEMPLATE = """\
     }}
 
     // ── RoA Resilience Indicator & Chart ──────────────────────────────────────
-    if (ROA_DATA) {{
+    function renderRoASparkline() {{
+      if (!ROA_DATA) return;
       var roaPanel = document.getElementById('roa-panel');
       if (roaPanel) roaPanel.style.display = 'block';
 
@@ -1193,6 +1214,28 @@ _ANIMATION_HTML_TEMPLATE = """\
         var fillPath = linePath + ' L ' + (nH - 1) + ',38 L 0,38 Z';
         svgFill.setAttribute('d', fillPath);
       }}
+    }}
+
+    function switchTier(tierKey) {{
+      currentTier = tierKey;
+      if (MULTI_TIER_DATA && MULTI_TIER_DATA.tiers && MULTI_TIER_DATA.tiers[tierKey]) {{
+        var tierInfo = MULTI_TIER_DATA.tiers[tierKey];
+        ROA_DATA = tierInfo.roa;
+        if (MULTI_TIER_POIS && MULTI_TIER_POIS[tierKey]) {{
+          Object.keys(MULTI_TIER_POIS[tierKey]).forEach(function (poiType) {{
+            if (BACKUP_POIS[poiType] && MULTI_TIER_POIS[tierKey][poiType]) {{
+              BACKUP_POIS[poiType].pois = MULTI_TIER_POIS[tierKey][poiType].pois;
+            }}
+          }});
+        }}
+        renderRoASparkline();
+        setFrame(currentFrame);
+      }}
+    }}
+    window.switchTier = switchTier;
+
+    if (ROA_DATA) {{
+      renderRoASparkline();
     }}
 
     function updateRoAPanel(frame) {{
@@ -1644,6 +1687,57 @@ def _backup_layers_to_js(
     return json.dumps(out, separators=(",", ":"))
 
 
+def _multi_tier_to_js(
+    multi_tier_bundle: Optional[Dict[str, Any]],
+    backup_layers: Optional[Dict[str, Dict]],
+) -> tuple[str, str]:
+    """Serialise multi-tier scenario bundles into JS literals."""
+    if not multi_tier_bundle or "tiers" not in multi_tier_bundle:
+        return "null", "null"
+
+    tier_pois_map: Dict[str, Dict[str, Dict]] = {}
+    for tier_key, tier_meta in multi_tier_bundle["tiers"].items():
+        backup_lifetime = tier_meta.get("backup_lifetime", {})
+        tier_pois_map[tier_key] = {}
+        for poi_type, sim_rows in backup_lifetime.items():
+            layer_cfg = (backup_layers or {}).get(poi_type, {}).get("cfg", {})
+            recharge_delay = layer_cfg.get("recharge_delay", 0)
+            resources_cfg = layer_cfg.get("resources", {})
+
+            pois_js = []
+            for sim in sim_rows:
+                deps = {}
+                for resource, buffer_by_hour in sim.get("buffer_by_hour", {}).items():
+                    res_cfg = resources_cfg.get(resource, {})
+                    capacity = res_cfg.get("capacity", 0)
+                    if capacity == float("inf") or not capacity:
+                        capacity = max(buffer_by_hour) if buffer_by_hour and max(buffer_by_hour) > 0 else 1.0
+                    fraction_by_hour = [
+                        (b / capacity if capacity and capacity != float("inf") else 1.0)
+                        for b in buffer_by_hour
+                    ]
+                    deps[resource] = {
+                        "capacity": capacity if capacity != float("inf") else 999,
+                        "buffer_by_hour": buffer_by_hour,
+                        "fraction_by_hour": fraction_by_hour,
+                        "connected_by_hour": sim.get("connected_by_hour", {}).get(
+                            resource, [True] * len(buffer_by_hour)
+                        ),
+                    }
+                pois_js.append({
+                    "state_by_hour": sim.get("state_by_hour", []),
+                    "reboot_timer_by_hour": sim.get("reboot_timer_by_hour", []),
+                    "flooded_by_hour": sim.get("flooded_by_hour", []),
+                    "recharge_delay": recharge_delay,
+                    "deps": deps,
+                })
+            tier_pois_map[tier_key][poi_type] = {"pois": pois_js}
+
+    multi_tier_data_js = json.dumps(multi_tier_bundle, separators=(",", ":"))
+    multi_tier_pois_js = json.dumps(tier_pois_map, separators=(",", ":"))
+    return multi_tier_data_js, multi_tier_pois_js
+
+
 def build_flood_animation_html(
     boundary_geom: "BaseGeometry",
     stages: List[Dict],
@@ -1656,6 +1750,7 @@ def build_flood_animation_html(
     resource_ring_meta: Optional[Dict[str, Dict]] = None,
     restart_threshold: float = 0.15,
     roa_data: Optional[Dict[str, Any]] = None,
+    multi_tier_bundle: Optional[Dict[str, Any]] = None,
 ) -> Path:
     """Generate a self-contained HTML flood simulation animation file.
 
@@ -1780,6 +1875,9 @@ def build_flood_animation_html(
     roa_data_js = (
         json.dumps(roa_data, separators=(",", ":")) if roa_data is not None else "null"
     )
+    multi_tier_data_js, multi_tier_pois_js = _multi_tier_to_js(
+        multi_tier_bundle, backup_layers
+    )
 
     # ------------------------------------------------------------------
     # 5. Inject into template and write
@@ -1794,6 +1892,8 @@ def build_flood_animation_html(
     html = html.replace("__RESOURCE_RING_META__", resource_ring_meta_js)
     html = html.replace("__RESTART_THRESHOLD__", restart_threshold_js)
     html = html.replace("__ROA_DATA__",          roa_data_js)
+    html = html.replace("__MULTI_TIER_DATA__",   multi_tier_data_js)
+    html = html.replace("__MULTI_TIER_POIS__",   multi_tier_pois_js)
     html = html.replace("__FACILITY_TYPES__",    facility_types_js)
     html = html.replace("__FACILITY_POINTS__",   facility_points_js)
     html = html.replace("__FACILITY_FLOODED__",  facility_flooded_js)
