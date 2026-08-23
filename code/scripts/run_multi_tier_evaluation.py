@@ -12,24 +12,8 @@ import sys
 
 # --- Dynamic Path & Environment Resolution ---
 _current_dir = Path(__file__).resolve().parent
-_code_dir = None
-_project_root = None
-
-_cursor = _current_dir
-while _cursor != _cursor.parent:
-    if (_cursor / "code").is_dir() and (_cursor / "HQ_raw").is_dir():
-        _project_root = _cursor
-        _code_dir = _cursor / "code"
-        break
-    if _cursor.name == "code" and (_cursor.parent / "HQ_raw").is_dir():
-        _code_dir = _cursor
-        _project_root = _cursor.parent
-        break
-    _cursor = _cursor.parent
-
-if _code_dir is None:
-    _code_dir = _current_dir.parent if _current_dir.name == "scripts" else _current_dir
-    _project_root = _code_dir.parent
+_code_dir = _current_dir.parent if _current_dir.name == "scripts" else _current_dir
+_project_root = _code_dir.parent
 
 if str(_code_dir) not in sys.path:
     sys.path.insert(0, str(_code_dir))
@@ -50,7 +34,8 @@ logger = logging.getLogger("MultiTierEval")
 
 def run_all_tiers():
     proc_dir = _code_dir / "css_geodata_service" / "robustness_of_accessibility" / "data" / "processed"
-    hq_raw_dir = _project_root / "HQ_raw"
+    hazard_dir = _code_dir / "css_geodata_service" / "robustness_of_accessibility" / "data" / "input" / "Flooding" / "HazardAreas"
+    hq_raw_dir = hazard_dir / "HQ_raw"
     place_name = "Trier, Germany"
 
     bundle = load_or_compute_multi_tier_bundle(

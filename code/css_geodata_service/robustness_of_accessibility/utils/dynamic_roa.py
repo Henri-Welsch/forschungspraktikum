@@ -488,6 +488,18 @@ def load_or_compute_multi_tier_bundle(
     if hq_raw_dir is None:
         p = cache_dir.resolve()
         for candidate in [p, *p.parents]:
+            if (candidate / "data" / "input" / "Flooding" / "HazardAreas" / "HQ_raw").is_dir():
+                hq_raw_dir = candidate / "data" / "input" / "Flooding" / "HazardAreas" / "HQ_raw"
+                break
+            if (candidate / "input" / "Flooding" / "HazardAreas" / "HQ_raw").is_dir():
+                hq_raw_dir = candidate / "input" / "Flooding" / "HazardAreas" / "HQ_raw"
+                break
+            if (candidate / "Flooding" / "HazardAreas" / "HQ_raw").is_dir():
+                hq_raw_dir = candidate / "Flooding" / "HazardAreas" / "HQ_raw"
+                break
+            if (candidate / "HazardAreas" / "HQ_raw").is_dir():
+                hq_raw_dir = candidate / "HazardAreas" / "HQ_raw"
+                break
             if (candidate / "HQ_raw").is_dir():
                 hq_raw_dir = candidate / "HQ_raw"
                 break
@@ -495,7 +507,7 @@ def load_or_compute_multi_tier_bundle(
                 hq_raw_dir = candidate.parent / "HQ_raw"
                 break
         if hq_raw_dir is None:
-            hq_raw_dir = Path.cwd().parent / "HQ_raw"
+            hq_raw_dir = cache_dir.parents[0] / "input" / "Flooding" / "HazardAreas" / "HQ_raw"
     hq_raw_dir = Path(hq_raw_dir)
 
     # 2. Resolve Flood Stages

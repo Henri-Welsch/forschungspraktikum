@@ -254,6 +254,16 @@ def load_or_compute_hq_raw_flood_stages(
     """
     raw_dir = Path(hq_raw_dir).resolve()
     if not raw_dir.exists():
+        for candidate in [
+            Path(cache_dir).parents[0] / "input" / "Flooding" / "HazardAreas" / "HQ_raw",
+            Path(cache_dir).parents[0] / "input" / "Flooding" / "HQ_raw",
+            Path(cache_dir).parents[1] / "input" / "Flooding" / "HazardAreas" / "HQ_raw",
+            Path(cache_dir).parents[2] / "input" / "Flooding" / "HazardAreas" / "HQ_raw",
+        ]:
+            if candidate.is_dir():
+                raw_dir = candidate.resolve()
+                break
+    if not raw_dir.exists():
         raise FileNotFoundError(f"HQ_raw directory not found: {raw_dir}")
 
     all_files = sorted(list(raw_dir.glob("*.geojson")))

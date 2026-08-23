@@ -70,6 +70,16 @@ def get_roa_hazard_areas_path() -> Path:
     return get_roa_flooding_path() / "HazardAreas"
 
 
+def get_roa_hq_raw_path() -> Path:
+    candidate = get_roa_hazard_areas_path() / "HQ_raw"
+    if candidate.is_dir():
+        return candidate
+    candidate_flooding = get_roa_flooding_path() / "HQ_raw"
+    if candidate_flooding.is_dir():
+        return candidate_flooding
+    return candidate
+
+
 def get_roa_hazard_data_path(
     event: HazardEventLikelyhood,
     region_modifier: str | None = "_cropped_trier",

@@ -1,2 +1,5 @@
 *
 !.gitignore
+!HQ*.geojson
+!HQ_raw
+!HQ_raw/**
