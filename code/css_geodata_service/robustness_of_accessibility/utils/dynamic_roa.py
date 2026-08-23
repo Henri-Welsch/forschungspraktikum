@@ -25,12 +25,28 @@ import networkx as nx
 import numpy as np
 import osmnx as ox
 import pandas as pd
+from shapely.ops import unary_union
 
+from css_geodata_service.robustness_of_accessibility.robustness_of_accessibility import (
+    load_or_draw_sample,
+)
+from css_geodata_service.robustness_of_accessibility.utils.backup_lifetime import (
+    compute_backup_lifetime,
+)
 from css_geodata_service.robustness_of_accessibility.utils.flood_interpolation import (
     build_stage_for_hour,
+    load_or_compute_hq_raw_flood_stages,
+)
+from css_geodata_service.robustness_of_accessibility.utils.flood_status import (
+    load_or_compute_dependency_status_by_stage,
+    load_or_compute_flood_status_by_stage,
+)
+from css_geodata_service.robustness_of_accessibility.utils.ncnn import (
+    load_or_calculate_ncnn_routes,
 )
 from css_geodata_service.robustness_of_accessibility.utils.stage_disruptions import (
     build_stage_graphs,
+    load_or_compute_stage_disruptions,
 )
 
 logger = logging.getLogger(__name__)
@@ -314,3 +330,362 @@ def load_or_compute_dynamic_roa(
 
     logger.info("Dynamic RoA simulation results saved to cache %s", cache_file)
     return results
+
+
+# Parameter Configurations for All 4 Resilience Tiers
+TIER_CONFIGS: Dict[str, Dict[str, Any]] = {
+    "Level_A": {
+        "title": "Level A: Road Baseline",
+        "description": "Road cuts active; facilities permanent (infinite utility buffers).",
+        "backup_cfg": {
+            "hospital": {
+                "recharge_delay": 0,
+                "resources": {
+                    "power": {"capacity": float("inf"), "loss_rate": 0.0, "gain_rate": 1.0},
+                    "water": {"capacity": float("inf"), "loss_rate": 0.0, "gain_rate": 1.0},
+                },
+            },
+            "fire_station": {
+                "recharge_delay": 0,
+                "resources": {
+                    "power": {"capacity": float("inf"), "loss_rate": 0.0, "gain_rate": 1.0},
+                    "water": {"capacity": float("inf"), "loss_rate": 0.0, "gain_rate": 1.0},
+                },
+            },
+        },
+    },
+    "Level_B1": {
+        "title": "Level B1: Power Cascade",
+        "description": "Substation flooding & power depletion; water unconstrained.",
+        "backup_cfg": {
+            "hospital": {
+                "recharge_delay": 48,
+                "resources": {
+                    "power": {"capacity": 72, "loss_rate": 1.0, "gain_rate": 1.0},
+                    "water": {"capacity": float("inf"), "loss_rate": 0.0, "gain_rate": 1.0},
+                },
+            },
+            "fire_station": {
+                "recharge_delay": 24,
+                "resources": {
+                    "power": {"capacity": 24, "loss_rate": 1.0, "gain_rate": 1.0},
+                    "water": {"capacity": float("inf"), "loss_rate": 0.0, "gain_rate": 1.0},
+                },
+            },
+        },
+    },
+    "Level_B2": {
+        "title": "Level B2: Water Cascade",
+        "description": "Water source flooding & tank depletion; power unconstrained.",
+        "backup_cfg": {
+            "hospital": {
+                "recharge_delay": 48,
+                "resources": {
+                    "power": {"capacity": float("inf"), "loss_rate": 0.0, "gain_rate": 1.0},
+                    "water": {"capacity": 48, "loss_rate": 1.0, "gain_rate": 1.0},
+                },
+            },
+            "fire_station": {
+                "recharge_delay": 24,
+                "resources": {
+                    "power": {"capacity": float("inf"), "loss_rate": 0.0, "gain_rate": 1.0},
+                    "water": {"capacity": 12, "loss_rate": 1.0, "gain_rate": 1.0},
+                },
+            },
+        },
+    },
+    "Level_C": {
+        "title": "Level C: Compound Failure",
+        "description": "Simultaneous power + water cascades with reboot delay and hysteresis.",
+        "backup_cfg": {
+            "hospital": {
+                "recharge_delay": 48,
+                "resources": {
+                    "power": {"capacity": 72, "loss_rate": 1.0, "gain_rate": 1.0},
+                    "water": {"capacity": 48, "loss_rate": 1.0, "gain_rate": 1.0},
+                },
+            },
+            "fire_station": {
+                "recharge_delay": 24,
+                "resources": {
+                    "power": {"capacity": 24, "loss_rate": 1.0, "gain_rate": 1.0},
+                    "water": {"capacity": 12, "loss_rate": 1.0, "gain_rate": 1.0},
+                },
+            },
+        },
+    },
+}
+
+
+def load_or_compute_multi_tier_bundle(
+    cache_dir: Path | str,
+    street_network: Optional[nx.MultiGraph | nx.MultiDiGraph] = None,
+    samples: Optional[gpd.GeoDataFrame] = None,
+    poi_gdfs: Optional[Dict[str, gpd.GeoDataFrame]] = None,
+    infrastructure_gdfs: Optional[Dict[str, gpd.GeoDataFrame]] = None,
+    stages: Optional[List[Dict]] = None,
+    stage_for_hour: Optional[List[int]] = None,
+    facility_flood_status: Optional[Dict[str, Dict[int, List[str]]]] = None,
+    dependency_status: Optional[Dict[str, Any]] = None,
+    stage_disruptions: Optional[Dict[int, List[Tuple[int, int, int]]]] = None,
+    place_name: str = "Trier, Germany",
+    hq_raw_dir: Optional[Path | str] = None,
+    tier_configs: Optional[Dict[str, Dict[str, Any]]] = None,
+    force_recompute: bool = False,
+) -> Dict[str, Any]:
+    """Load pre-computed multi-tier RoA simulation bundle (Levels A, B1, B2, C)
+    from cache, or compute and cache all tiers automatically.
+
+    Parameters
+    ----------
+    cache_dir : Path or str
+        Base cache directory (e.g. ``data/processed``).
+    street_network : nx.MultiGraph or nx.MultiDiGraph, optional
+        Base undisrupted road graph. Automatically loaded/fetched if None.
+    samples : GeoDataFrame, optional
+        Citizen origin sample points. Automatically loaded/drawn if None.
+    poi_gdfs : dict of GeoDataFrame, optional
+        ``{poi_type: gdf}`` containing destination POIs.
+    infrastructure_gdfs : dict of GeoDataFrame, optional
+        ``{infra_type: gdf}`` containing utility infrastructure.
+    stages : list of dict, optional
+        Discrete flood stages list. Automatically computed from ``hq_raw_dir`` if None.
+    stage_for_hour : list of int, optional
+        336-element mapping from hour to stage index.
+    facility_flood_status : dict, optional
+        Direct flood status per facility type and stage.
+    dependency_status : dict, optional
+        NCNN dependency status per facility type and stage.
+    stage_disruptions : dict, optional
+        Flooded edges per flood stage.
+    place_name : str
+        Region identifier (default: "Trier, Germany").
+    hq_raw_dir : Path or str, optional
+        Path to raw hydrodynamic gauge stage directory (``HQ_raw``).
+    tier_configs : dict, optional
+        Dictionary mapping tier keys to configuration metadata. Defaults to :data:`TIER_CONFIGS`.
+    force_recompute : bool
+        If True, ignore cached files and recompute all 4 simulation tiers.
+
+    Returns
+    -------
+    dict
+        Master multi-tier simulation payload containing results for all 4 tiers.
+    """
+    cache_dir = Path(cache_dir)
+    safe_place = place_name.replace(" ", "_").replace(",", "")
+    n_hours = len(stage_for_hour) if stage_for_hour is not None else 336
+    bundle_path = cache_dir / "roa" / f"multi_tier_roa_bundle_{safe_place}_{n_hours}h.json"
+
+    if bundle_path.exists() and not force_recompute:
+        logger.info("Loading pre-computed multi-tier simulation bundle from %s", bundle_path)
+        with open(bundle_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    logger.info("Multi-tier bundle not cached or recompute requested. Starting self-healing computation pipeline...")
+
+    # 1. Resolve HQ_raw directory
+    if hq_raw_dir is None:
+        p = cache_dir.resolve()
+        for candidate in [p, *p.parents]:
+            if (candidate / "HQ_raw").is_dir():
+                hq_raw_dir = candidate / "HQ_raw"
+                break
+            if (candidate.parent / "HQ_raw").is_dir():
+                hq_raw_dir = candidate.parent / "HQ_raw"
+                break
+        if hq_raw_dir is None:
+            hq_raw_dir = Path.cwd().parent / "HQ_raw"
+    hq_raw_dir = Path(hq_raw_dir)
+
+    # 2. Resolve Flood Stages
+    if stages is None:
+        logger.info("Loading hydrodynamic flood stages from %s...", hq_raw_dir)
+        stages = load_or_compute_hq_raw_flood_stages(
+            cache_dir=cache_dir,
+            hq_raw_dir=hq_raw_dir,
+            place_name=place_name,
+            min_gauge_m=9.00,
+            max_gauge_m=11.80,
+        )
+
+    if stage_for_hour is None:
+        stage_for_hour = build_stage_for_hour(stages)
+    n_hours = len(stage_for_hour)
+
+    # 3. Resolve Road Network Graph
+    if street_network is None:
+        graph_path = cache_dir / "network" / f"drive_graph_{place_name}.graphml"
+        if graph_path.exists():
+            road_network = ox.load_graphml(graph_path)
+        else:
+            logger.info("Fetching road network from OSM for '%s'...", place_name)
+            road_network = ox.graph_from_place(place_name, network_type="drive")
+            graph_path.parent.mkdir(parents=True, exist_ok=True)
+            ox.save_graphml(road_network, graph_path)
+        street_network = ox.utils_graph.get_undirected(road_network) if road_network.is_directed() else road_network
+    elif street_network.is_directed():
+        street_network = ox.utils_graph.get_undirected(street_network)
+
+    # 4. Resolve Study Boundary
+    boundary_cache = cache_dir / f"services/boundary_geom_{place_name}.geojson"
+    if boundary_cache.exists():
+        boundary_gdf = gpd.read_file(boundary_cache)
+        boundary_geom = unary_union(boundary_gdf.geometry)
+    else:
+        logger.info("Fetching study boundary from OSM for '%s'...", place_name)
+        place_gdf = ox.geocode_to_gdf(place_name)
+        boundary_geom = unary_union(place_gdf.geometry)
+        boundary_cache.parent.mkdir(parents=True, exist_ok=True)
+        gpd.GeoDataFrame(geometry=[boundary_geom], crs="EPSG:4326").to_file(
+            boundary_cache, driver="GeoJSON"
+        )
+
+    # 5. Resolve Samples
+    if samples is None:
+        nodes_gdf = ox.graph_to_gdfs(street_network, edges=False)
+        samples = load_or_draw_sample(
+            cache_path=cache_dir / f"samples/samples_{place_name}_500.geojson",
+            polygon=boundary_geom,
+            gdf_nodes_drive_service_graph=nodes_gdf,
+            number_total_samples=500,
+            random_seed=42,
+        )
+
+    # 6. Resolve POIs & Infrastructure
+    services_cache_dir = cache_dir / "services"
+    services_cache_dir.mkdir(parents=True, exist_ok=True)
+
+    def _get_feature_gdf(feat_name: str, osm_tags: dict) -> gpd.GeoDataFrame:
+        feat_path = services_cache_dir / f"{feat_name}_{place_name}.geojson"
+        if feat_path.exists():
+            return gpd.read_file(feat_path)
+        logger.info("Fetching '%s' from OSM...", feat_name)
+        gdf = ox.features_from_polygon(polygon=boundary_geom, tags=osm_tags)
+        gdf.to_file(feat_path, driver="GeoJSON")
+        return gdf
+
+    if poi_gdfs is None:
+        hospitals = _get_feature_gdf("hospitals", {"amenity": ["hospital"]})
+        fire_stations = _get_feature_gdf("fire_stations", {"amenity": ["fire_station"]})
+        poi_gdfs = {"hospital": hospitals, "fire_station": fire_stations}
+
+    if infrastructure_gdfs is None:
+        power_substations = _get_feature_gdf("power_substations", {"power": ["substation"]})
+        power_plants = _get_feature_gdf("power_plants", {"power": ["plant"]})
+        water_works = _get_feature_gdf("water_works", {"man_made": ["water_works"]})
+        water_towers = _get_feature_gdf("water_towers", {"man_made": ["water_tower"]})
+        pumping_stations = _get_feature_gdf("pumping_stations", {"man_made": ["pumping_station"]})
+
+        power_stations = gpd.GeoDataFrame(
+            pd.concat([power_substations, power_plants], ignore_index=True), crs="EPSG:4326"
+        )
+        water_stations = gpd.GeoDataFrame(
+            pd.concat([water_works, water_towers, pumping_stations], ignore_index=True), crs="EPSG:4326"
+        )
+        infrastructure_gdfs = {"power": power_stations, "water": water_stations}
+
+    facility_gdfs = {**poi_gdfs, **infrastructure_gdfs}
+
+    # Ensure nearest_node_id populated on POIs
+    for ptype, gdf in poi_gdfs.items():
+        if "nearest_node_id" not in gdf.columns:
+            rep_points = gdf.geometry.representative_point()
+            gdf["nearest_node_id"] = [
+                int(ox.distance.nearest_nodes(street_network, X=pt.x, Y=pt.y))
+                for pt in rep_points
+            ]
+
+    # 7. Resolve Stage Disruptions
+    if stage_disruptions is None:
+        stage_disruptions = load_or_compute_stage_disruptions(
+            cache_dir=cache_dir,
+            street_network=street_network,
+            stages=stages,
+            place_name=place_name,
+        )
+
+    # 8. Resolve Direct Flood Status & NCNN Dependency Status
+    if facility_flood_status is None:
+        facility_flood_status = load_or_compute_flood_status_by_stage(
+            cache_dir=cache_dir,
+            facility_gdfs=facility_gdfs,
+            stages=stages,
+            place_name=place_name,
+        )
+
+    if dependency_status is None:
+        ncnn_results = load_or_calculate_ncnn_routes(
+            cache_dir=cache_dir,
+            poi_gdfs=poi_gdfs,
+            infrastructure_gdfs=infrastructure_gdfs,
+            street_network=street_network,
+            place_name=place_name,
+        )
+        dependency_status = load_or_compute_dependency_status_by_stage(
+            cache_dir=cache_dir,
+            infrastructure_gdfs=infrastructure_gdfs,
+            connections=ncnn_results,
+            direct_flooded_by_stage=facility_flood_status,
+            place_name=place_name,
+        )
+
+    # 9. Execute All Simulation Tiers
+    configs = tier_configs if tier_configs is not None else TIER_CONFIGS
+    backup_out_dir = cache_dir / "backup_lifetime"
+    backup_out_dir.mkdir(parents=True, exist_ok=True)
+    roa_out_dir = cache_dir / "roa"
+    roa_out_dir.mkdir(parents=True, exist_ok=True)
+
+    multi_tier_payload = {
+        "hours": list(range(n_hours)),
+        "stages_count": len(stages),
+        "n_samples": len(samples),
+        "tiers": {},
+    }
+
+    for tier_key, tier_meta in configs.items():
+        logger.info("Computing simulation for %s: %s...", tier_key, tier_meta["title"])
+
+        tier_backup = compute_backup_lifetime(
+            poi_types=["hospital", "fire_station"],
+            direct_flooded_by_stage=facility_flood_status,
+            dependency_status=dependency_status,
+            stage_for_hour=stage_for_hour,
+            backup_cfg=tier_meta["backup_cfg"],
+            restart_threshold=0.15,
+        )
+
+        backup_tier_path = backup_out_dir / f"backup_lifetime_{safe_place}_{tier_key}_{n_hours}h.json"
+        with open(backup_tier_path, "w", encoding="utf-8") as f:
+            json.dump(tier_backup, f)
+
+        tier_roa = compute_dynamic_roa(
+            street_network=street_network,
+            samples=samples,
+            poi_gdfs=poi_gdfs,
+            backup_lifetime_results=tier_backup,
+            stage_disruptions=stage_disruptions,
+            stages=stages,
+            stage_for_hour=stage_for_hour,
+            poi_weights={"hospital": 0.5, "fire_station": 0.5},
+        )
+
+        roa_tier_path = roa_out_dir / f"roa_{safe_place}_{tier_key}_{n_hours}h.json"
+        with open(roa_tier_path, "w", encoding="utf-8") as f:
+            json.dump(tier_roa, f)
+
+        multi_tier_payload["tiers"][tier_key] = {
+            "title": tier_meta["title"],
+            "description": tier_meta["description"],
+            "backup_lifetime": tier_backup,
+            "roa": tier_roa,
+        }
+
+    # Save master combined bundle
+    bundle_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(bundle_path, "w", encoding="utf-8") as f:
+        json.dump(multi_tier_payload, f)
+
+    logger.info("Multi-tier simulation bundle successfully cached to %s", bundle_path)
+    return multi_tier_payload
