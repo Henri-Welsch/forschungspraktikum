@@ -22,28 +22,21 @@ class RoaNotebookConfig:
 
 
 def set_notbook_wd():
-    notebook_path = Path().resolve()
-
-    # Walk up to the desired parent (e.g., 'css_geodata_service')
-    for parent in notebook_path.parents:
-        if parent.name == "code":
-            os.chdir(parent)
-            break
-
+    """Sets the process working directory to the 'code' root directory."""
+    code_dir = Path(__file__).resolve().parents[4]
+    if Path().resolve() != code_dir:
+        os.chdir(code_dir)
     print(f"Working dir set to: {os.getcwd()}")
 
 
 def get_working_directory() -> Path:
-    set_notbook_wd()
-    wd = Path().resolve()
-    # print(f"wd {wd}")
-    return wd
+    """Returns the absolute path to the 'code' root directory."""
+    return Path(__file__).resolve().parents[4]
 
 
 def get_roa_base_path() -> Path:
-    base_path = get_working_directory() / "css_geodata_service" / "robustness_of_accessibility"
-    # print(f"base path {base_path}")
-    return base_path
+    """Returns the absolute path to 'robustness_of_accessibility' directory."""
+    return Path(__file__).resolve().parents[2]
 
 
 def get_roa_data_path() -> Path:
