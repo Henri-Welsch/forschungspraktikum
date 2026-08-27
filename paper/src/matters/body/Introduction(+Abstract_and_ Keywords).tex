@@ -18,14 +18,19 @@ Kritische Infrastrukturen, Kaskadeneffekte, robustness of accessibility, power o
 %-kleine allgemeine Einführung
 %-Motivation
 
-Die Funktionsfähigkeit moderner Gesellschaften hängt maßgeblich von der zuverlässigen Bereitstellung kritischer Infrastrukturen ab \cite{lickert2024}. Dabei sind Versorgungsleistungen wie zum Beispiel Wasser-, Gesundheits- und Energieversorgung sowie der Transport von Lebensmitteln und Gütern für eine funktionierende Gesellschaft unabdingbar \cite{lickert2024,chiaradonna2007}. Kritische Infrastrukturen sind eng miteinander verknüpft und sollten daher als interdependente Systeme betrachtet werden, da die Funktionsfähigkeit einzelner Systeme von anderen Infrastrukturen abhängen kann \cite{chiaradonna2007}. Dadurch entstehen wechselseitige Abhängigkeiten zwischen verschiedenen Infrastrukturen \cite{chiaradonna2007}.
+Die Funktionsfähigkeit moderner Gesellschaften hängt maßgeblich von kritischen Infrastrukturen wie der Wasser-, Gesundheits- und Energieversorgung sowie dem Transport von Lebensmitteln und Gütern ab\cite{lickert2024,chiaradonna2007}. Kritische Infrastrukturen sind funktional miteinander verknüpft und können daher voneinander abhänigig sein\cite{chiaradonna2007}.
 
 %Absatz 2
 %-Problemstellung (Wirtschaftsinformatisches Problem)
 
-Werden die Infrastrukturen gestört, könnten weitreichende Folgen entstehen, die sich nicht nur auf die unmittelbar betroffenen Systeme beschränken. Da zwischen Infrastrukturen Abhängigkeiten bestehen, kann der Ausfall einer Infrastrukutur weitere Störungen in abhängigen Infrastrukuturen verursachen \cite{laprie2007}. Eine solche Kettenreaktion von Störungen kann als kaskadierender Effekt beziehungsweise kaskadierender Ausfall beschrieben werden \cite{laprie2007}. Im Extremfall führen die daraus enstehenden Kaskaden zu vollständigen Systemzusammenbruch \cite{buldyrev2010}. Daher ist für die Auswertung verschiedener Krisenszenarien nicht nur entscheidend welche Infrastrukturen akut betroffen sind, sondern auch, wie sich daraus resultierende Ausfälle im zeitlichen Verlauf auf abhängige Infrastrukturen ausbreiten können \cite{lickert2024}.
 
-Für die Versorgung der Bevölkerung ist bei Infrastrukturausfällen entscheidend, ob kritische \textbf{Point of Interest (POIs)}, beispielsweise Krankenhäuser, sowohl funktionsfähig als auch über das Straßennetz erreichbar bleiben \cite{kaub2024,lickert2024}. Kaub et al. haben mit dem \textbf{Robustness of Accessibility (RoA)} einen Ansatz entwickelt, bei dem man die Veränderung der Erreichbarkeit einzelner POIs von intakten mit gestörten Straßennetzen vergleicht \cite{kaub2024}.
+Wegen dieser Abhängigkeiten können Störungen auf sich auf andere Infrastrukturen ausbreiten und kaskadieren Ausfälle hervorrufen\cite{laprie2007}. Im Extremfall können derartige Kaskaden zu umfassenden Ausfällen von interdependenter Infrastruktursysteme führen\cite{buldyrev2010}. Daher ist für die Auswertung verschiedener Krisenszenarien nicht nur entscheidend welche Infrastrukturen akut betroffen sind, sondern auch, wie sich daraus resultierende Ausfälle im zeitlichen Verlauf auf abhängige Infrastrukturen ausbreiten können \cite{lickert2024}.
+
+
+
+%Werden die Infrastrukturen gestört, könnten weitreichende Folgen entstehen, die sich nicht nur auf die unmittelbar betroffenen Systeme beschränken\cite{laprie2007}. Da zwischen Infrastrukturen Abhängigkeiten bestehen, kann der Ausfall einer Infrastrukutur weitere Störungen in abhängigen Infrastrukuturen verursachen \cite{laprie2007}. Eine solche Kettenreaktion von Störungen kann als kaskadierender Effekt beziehungsweise kaskadierender Ausfall beschrieben werden \cite{laprie2007}. Im Extremfall führen die daraus enstehenden Kaskaden zu vollständigen Systemzusammenbruch \cite{buldyrev2010}. Daher ist für die Auswertung verschiedener Krisenszenarien nicht nur entscheidend welche Infrastrukturen akut betroffen sind, sondern auch, wie sich daraus resultierende Ausfälle im zeitlichen Verlauf auf abhängige Infrastrukturen ausbreiten können \cite{lickert2024}.
+
+Für die Versorgung der Bevölkerung ist bei Infrastrukturausfällen entscheidend, ob kritische \textbf{Points of Interest (POIs)}, beispielsweise Krankenhäuser, sowohl funktionsfähig als auch über das Straßennetz erreichbar bleiben \cite{kaub2024,lickert2024}. Kaub et al. haben mit dem \textbf{Robustness of Accessibility (RoA)} einen Ansatz entwickelt, bei dem man die Veränderung der Erreichbarkeit einzelner POIs von intakten mit gestörten Straßennetzen vergleicht \cite{kaub2024}.
 
 %Absatz 3
 %-Forschungslücke
