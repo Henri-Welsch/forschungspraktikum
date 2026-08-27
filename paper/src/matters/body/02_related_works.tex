@@ -11,3 +11,83 @@
 % - RoA (einfügen urspünglicher formel von kaub)
 % - Gegebenenfalls Definitionen (interdependenzen, kaskadierende Effekte, Lifetimes, funktionale Zustände)
 % - Ableitung der Forschungslücke (Eventuell visuelle veranschaulichung)
+
+% - Stark eingehen auf verwandte Arbeiten
+% - Stand der Forschung
+% - RoA (einfügen urspünglicher formel von kaub)
+% - Gegebenenfalls Definitionen (interdependenzen, kaskadierende Effekte, Lifetimes, funktionale Zustände)
+% - Ableitung der Forschungslücke (Eventuell visuelle veranschaulichung)
+
+
+%Section Theoretische Grundlagen und verwandte Arbeiten
+
+Vorhandene Methoden zur Einschätzung der Resilienz kritischer Infrastrukturen berücksichtigen verschiedene Teilaspekte des Verhalten des Systems bei Störungen\cite{berdica2002,calvert2017,kaub2024,lickert2024}.
+
+%Subsection 2.1 Resilienz und kritische Infrastrukturen
+
+
+% Resilienz define
+Resilienz ist kein einheitlich definierter Begriff. Calvert und Snelder definieren für ihre Forschung die Resilienz als die Fähigkeit eines Systems, sich Schäden zu erholen und seine ursprüngliche Funktionsfähigkeit wiederherzustellen\cite{calvert2017}. Kaub et al. betrachten im Bezug auf Straßennetze die Resilienz als eine Fähigkeit, Störungen zu bewältigen und die \textit{Serviceability} eines Netzes aufrechtzuerhalten oder wiederherzustellen\cite{kaub2024}.
+
+Bruneau et al. betrachten die Resilienz als zeitabhängig, indem sie die Leistungsfähigkeit eines Systems als zeitabhängige Größe verstehen\cite{bruneau2003}. Eine Störung kann zu einer geringeren Systemleistung führen, woraufhin eine Wiederherstellungsphase schrittweise zum ursprünglichen Leistungsniveaus folgt\cite{bruneau2003}. Damit umfasst Resilienz nicht nur eintretende Funktionseinschränkungen, sondern auch dessen Entwicklung und Wiederherstellung im Zeitverlauf\cite{bruneau2003}.
+
+Für dieses Papier wird Resilienz als eine zeitabhängige Eigenschaft eines Systems verstanden, bei deren Bewertung die störungsbedingten Funktionsverluste wie auch die Folgeeffekte in der Systemleistung über einen zeitlichen Verlauf berücksichtigt werden.
+
+%-------------------------------------------------------------------------------------------------
+% Subsection 2.2 Kritische Infrastrukturen, Interdependenzen und kaskadierende Ausfälle
+
+Kritische Infrastrukturen können als komplexe, miteinander verknüpfte Systeme verstanden werden, die wesentliche Dienstleistungen bereitstellen\cite{chiaradonna2007}. Aufgrund dieser Vernetzung ist es relevant, dass bei der Analyse die Abhängigkeit zwischen einzelnen Infrastrukturen zu berücksichtigen ist\cite{chiaradonna2007}.
+
+Laprie et al. beschreiben Interdependenzen als ein gegenseitiges Verhältnis zwischen zwei Infrastrukturen, bei dem der Zustand einer Infrastruktur den Zustand der anderen beeinflusst oder mit diesem in Verbindung steht\cite{laprie2007}. Solche Interdependenzen können unterschiedliche Formen annehmen und beispielsweise physischer oder cyberbezogener Art sein\cite{chiaradonna2007}. Dadurch können sich Veränderungen oder Ausfälle einer Infrastruktur auf andere abhängige Infrastrukturen auswirken\cite{laprie2007}.
+
+Wenn der Ausfall einer Infrastruktur zur Folge hat, dass
+
+%-Eine Ableitung zu kaskadierende Ausfälle aufbauen (Laprie, Buldyrev, vielleicht lickert)
+
+
+% Subsection 2.3 Zeitabhängige Funktionsfähigkeit und Lifetimes
+
+%Lickert primär
+
+% Subsection 2.4 Straßenesilienz, serviceability und Erreichbarkeit
+
+%-Berdica: Vulnerability
+%-Serviceability
+%-Calvert & Snelder: LPIR
+%-ggf. Loss of Serviceability
+%-Zsmh zwischen Netzstörung und Erreichbarkeit
+
+% Subsection 2.5 Robustness of Acessibility (RoA)
+
+%-Kaub hauptfokus super wichtig
+%-Strapennetz als Graph
+%-intakter Graph
+%-gestörter Graph
+%-Source Destination Paare
+%-Shortest Path
+%-ursprüngliche RoA Formel
+%-Interpretation 0 <= RoA <= 1
+%-nicht erreichabre Verbindung -> Beitrag 0
+%-Stärke des RoA
+%-bestehende Grenze für eure Forschungsfrage
+
+% Subsection 2.6 Synthese des Forschungsstands
+
+%-Vergleich sämtlicher Literatur miteinander
+%-Aufmerksamkeit auf die Lücke herleiten. Was bisher fehlt
+%-Vielleicht visuelle Veranschaulichung anhand einer Tabelle
+
+
+
+Kaub et al. betrachten Erreichbarkeit gestörten Straßennetzen, während Calvert sowie Berdica und Snelder ihren Ansatz besonders auf die Vulnerabilität, Servicability und Resilienz von Straßennetzen betrachten \cite{berdica2002,calvert2017,kaub2024,lickert2024}.
+
+
+
+
+-Welche Aspekte sind vorhanden
+-Definitionen (Zitierung von anderen Papers)
+-was müsste man tun damit das problem gelöst wird
+-meiste literatur zitiert wird hier.
+-RoA
+
+%\end{document}
