@@ -27,6 +27,59 @@
 % - Gesamtstädtischer Index
 % - Topologische Kopplung
 % - Szenarien und Simulationsablauf
-%   - Level A: Nur Straßenausfälle
+%   - Level A: Nur Straßenausfälles
 %   - Level B: Straße und Strom
 %   - Leven C: Straße Strom und Wasser
+
+To quantify the impact of cascading infrastructure failures on urban resilience, we extend the static Reliability of Accessibility (RoA) index into a dynamic, time-dependent framework. This methodology incorporates the temporal progression of flood events, infrastructure coupling via road-network constraints, and the internal resilience of facilities managed through a finite state machine.
+
+\cite{calvert2017}
+
+\subsection{Mathematical Framework of RoA(t)}
+\label{subsec:mathematical-framework-of-roa-t}
+
+The static RoA index measures the ratio of accessibility between a disrupted and an undisrupted state. We operationalize this into a time-dependent metric $\text{RoA}(t)$ for each simulation hour $t$ within a disaster horizon $T$:
+
+\begin{equation}
+    \text{RoA}(t) = \sum_{j=1}^{n} a_j \cdot \frac{c_{\text{base}}(s_j)}{c_d(s_j, t)}
+\end{equation}
+
+Where $a_j$ represents the weight of origin sample point $s_j$ (e.g., population density), $c_{\text{base}}$ is the cost (travel time or distance) to the nearest facility in the pre-event state, and $c_d(s_j, t)$ is the cost to the nearest \textit{active} facility at time $t$. The road network $G(t)$ is dynamically updated by removing edges inundated at time $t$.
+
+The total resilience over the crisis period is captured by the time-integrated RoA ($\text{RoA}_{\text{Int}}$):
+
+\begin{equation}
+    \text{RoA}_{\text{Int}} = \frac{1}{T} \int_{0}^{T} \text{RoA}(t) \, dt
+\end{equation}
+
+This integral accounts for both the acute nadir of accessibility during the flood peak and the duration of service unavailability due to cascading failures.
+
+\subsection{Infrastructure Coupling via NCNN}
+\label{subsec:infrastructure-coupling-via-ncnn}
+
+Critical Points of Interest (POIs), such as hospitals and fire stations, depend on utility networks (power and water) that are often located underground along street corridors. To reflect this physical dependency, we implement the \textbf{Network-Capacity-aware Nearest Neighbor (NCNN)} algorithm.
+
+Unlike Euclidean distance, NCNN calculates the nearest utility node (e.g., a power substation) for each POI using the road network topology. We utilize a multi-source Dijkstra algorithm starting from all infrastructure nodes to map every POI to its topologically nearest supply point. This mapping determines the cascading logic: a POI loses its utility connection if its assigned infrastructure node is flooded.
+
+\subsection{POI Health: Finite State Machine}
+\label{subsec:poi-health-finite-state-machine}
+
+Facility functionality is not binary; backup systems allow POIs to remain operational during short-term outages. We model POI availability $\sigma(t)$ using a four-state finite state machine (FSM) that tracks independent buffers for power and water.
+
+\subsubsection{State Definitions}
+\label{subsubsec:state-definitions}
+\begin{itemize}
+    \item \textbf{Operational}: The facility is fully functional with both utility connections active.
+    \item \textbf{Depleting}: One or more utility connections are lost, but the facility remains functional using internal reserves.
+    \item \textbf{Dead}: The facility is unavailable. This occurs when a buffer is exhausted or the facility's site is directly flooded.
+    \item \textbf{Rebooting}: A recovery state following utility restoration, incorporating a restart delay.
+\end{itemize}
+
+\subsubsection{Buffer Dynamics and Hysteresis}
+\label{subsubsec:buffer-dynamics-and-hysteresis}
+Each resource $r$ (power, water) has a capacity $B_r$. The buffer level $b_r(t)$ decays at rate $\lambda_r$ during outages and refills at rate $\mu_r$ when reconnected. To prevent ``death-loop'' oscillations (where a facility restarts only to immediately fail due to low reserves), we implement a $15\,\%$ hysteresis threshold ($\theta = 0.15$). A facility can only transition from \textbf{Dead} to \textbf{Rebooting} if all resources exceed $\theta \cdot B_r$. Once in \textbf{Rebooting}, a facility must wait for a recharge delay $T_{\text{repair}}$ before returning to service.
+
+\subsection{Direct Flood Override}
+\label{subsec:direct-flood-override}
+
+A critical assumption is that no amount of backup reserve can maintain operations if a facility is directly inundated. We prioritize a \textbf{Direct Flood Override}: if a facility's representative point (the internal centroid of its geometry) intersects the flood polygon at time $t$, its state is forced to \textbf{Dead}, overriding all resource buffers.

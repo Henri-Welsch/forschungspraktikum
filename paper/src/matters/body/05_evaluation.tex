@@ -10,3 +10,39 @@
 % - Vergleich der Level A, B und C
 % - Sensitivitätsanalyse
 % - Überprüfung der Hypothesen
+
+The resilience of Trier's critical infrastructure is evaluated across four tiers of increasing complexity. These tiers allow us to isolate the impact of road disruptions, single-utility failures, and compound cascading failures.
+
+\subsection{Multi-Tier Evaluation Framework}
+\label{subsec:multi-tier-evaluation-framework}
+
+\subsubsection{Level A: Road Baseline}
+\label{subsubsec:level-a-road-baseline}
+This level serves as the baseline, representing the impact of road flooding only. Facility functionality is assumed to be perfect (infinite utility buffers). $\text{RoA}(t)$ reflects only the increase in travel distance caused by inundated street segments.
+
+\subsubsection{Level B1: Power Cascade}
+\label{subsubsec:level-b1-power-cascade}
+Level B1 introduces the dependency on the power grid. Facilities operate with limited power buffers ($72\,\text{h}$ for hospitals, $24\,\text{h}$ for fire stations). If the assigned power substation is flooded, the facility begins depleting its reserve. Water supply is assumed to be infinite.
+
+\subsubsection{Level B2: Water Cascade}
+\label{subsubsec:level-b2-water-cascade}
+Symmetric to B1, this tier models the impact of water outages. Hospitals and fire stations have water reserves of $48\,\text{h}$ and $12\,\text{h}$, respectively. Power is considered unconstrained.
+
+\subsubsection{Level C: Compound Failure}
+\label{subsubsec:level-c-compound-failure}
+Level C represents the most realistic scenario, where road disruptions, power cascades, and water cascades act simultaneously. A facility fails if \textit{either} resource is exhausted or its own site is flooded. This level also fully exercises the FSM's hysteresis and reboot delay logic.
+
+\subsection{Evaluation Metrics}
+\label{subsec:evaluation-metrics}
+
+The primary metric is the time-integrated RoA ($\text{RoA}_{\text{Int}}$), which provides a single percentage value of urban resilience. Additionally, we evaluate:
+\begin{itemize}
+    \item \textbf{Acute Nadir}: The minimum $\text{RoA}(t)$ reached during the flood peak.
+    \item \textbf{Recovery Rate}: The time taken for $\text{RoA}$ to return to pre-event levels after the flood recedes.
+    \item \textbf{Facility Downtime}: The total duration each POI spent in the \textbf{Dead} or \textbf{Rebooting} state.
+\end{itemize}
+
+\subsection{Observed Resilience Trends}
+\label{subsec:observed-resilience-trends}
+
+Initial simulation results demonstrate a non-linear decrease in accessibility as tiers progress. While Level A shows resilience dominated by the Moselle's geographic footprint, Levels B1 and B2 reveal vulnerabilities in facilities far from the flood zone that are coupled to vulnerable utility nodes. Level C exhibits a ``compounding effect'' where the total service loss exceeds the sum of individual power and water outages, particularly during the recession phase when facilities remain in the \textbf{Rebooting} state despite utility restoration.

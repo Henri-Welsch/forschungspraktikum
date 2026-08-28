@@ -14,3 +14,54 @@
 %   - Modellparameter
 % - Softwarearchitektur
 % - Implementierungslogik (Pseudo Code?)
+
+The proposed framework is implemented as a Python-based simulation pipeline, applied to the city of Trier, Germany, using open-source geospatial data and hydrodynamic flood models.
+
+\subsection{Data Acquisition and Pre-processing}
+\label{subsec:data-acquisition-and-pre-processing}
+
+\subsubsection{Urban and Utility Networks}
+\label{subsubsec:urban-and-utility-networks}
+Urban features are extracted from OpenStreetMap (OSM) using the \texttt{OSMnx} library. We identify three categories of critical facilities in Trier:
+\begin{itemize}
+    \item \textbf{POIs}: Hospitals (3) and fire stations (12).
+    \item \textbf{Power Infrastructure}: Substations and power plants (131).
+    \item \textbf{Water Infrastructure}: Water works, water towers, and pumping stations (11).
+\end{itemize}
+
+The road network is modeled as an undirected graph $G$, restricted to the ``drive'' service level to represent ambulance and fire engine routing.
+
+\subsubsection{Hydrodynamic Flood Stages}
+\label{subsubsec:hydrodynamic-flood-stages}
+Inundation data for the Moselle river is integrated using 29 discrete hydrodynamic gauge stages, ranging from a gauge height of $9.00\,\text{m}$ to $11.80\,\text{m}$. The $11.80\,\text{m}$ stage corresponds to a 100-year flood event (HQ100). These polygons are pre-processed and simplified to ensure efficient intersection checks during the 336-hour simulation.
+
+\subsection{Simulation Pipeline}
+\label{subsec:simulation-pipeline}
+
+The simulation covers a 14-day (336-hour) disaster scenario. We use a synthetic temporal profile consisting of a 48-hour pre-event period, a 96-hour linear rise to the HQ100 peak, a 48-hour peak duration, a 96-hour recession, and a 48-hour post-event recovery phase.
+
+\subsubsection{NCNN Coupling}
+\label{subsubsec:ncnn-coupling}
+The coupling between POIs and infrastructure is established at the start of the simulation using the NCNN algorithm. Each POI is snapped to the road network, and its nearest utility node is identified via multi-source Dijkstra. The resulting mapping serves as the topology for cascading failures.
+
+\subsubsection{Temporal Resolution}
+\label{subsubsec:temporal-resolution}
+For each hour $t$, the simulation performs three operations:
+\begin{enumerate}
+    \item \textbf{Flood Interpolation}: Determine the current inundation polygon based on the temporal profile and hydrodynamic stages.
+    \item \textbf{Network Disruption}: Remove road edges intersecting the flood polygon to update $G(t)$.
+    \item \textbf{FSM Update}: Update the health state $\sigma(t)$ and buffers $b_r(t)$ for every facility based on direct flooding and utility connection status.
+\end{enumerate}
+
+\subsection{Simulation Environment}
+\label{subsec:simulation-environment}
+
+The simulation is built using the following software stack:
+\begin{itemize}
+    \item \textbf{Python 3.10+}: Core logic and FSM implementation.
+    \item \textbf{GeoPandas \& Shapely}: Geospatial operations and flood intersection checks.
+    \item \textbf{NetworkX}: Graph algorithms for shortest-path calculations.
+    \item \textbf{OSMnx}: OSM data acquisition and network modeling.
+\end{itemize}
+
+We utilize a 500-point origin sample distributed across the study area boundary to compute the aggregate $\text{RoA}$ score. The baseline cost $c_{\text{base}}$ is pre-computed on the undisrupted network for all POI types.
