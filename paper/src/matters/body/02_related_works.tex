@@ -27,27 +27,38 @@ Vorhandene Methoden zur Einschätzung der Resilienz kritischer Infrastrukturen b
 
 
 % Resilienz define
-Resilienz ist kein einheitlich definierter Begriff. Calvert und Snelder definieren für ihre Forschung die Resilienz als die Fähigkeit eines Systems, sich Schäden zu erholen und seine ursprüngliche Funktionsfähigkeit wiederherzustellen\cite{calvert2017}. Kaub et al. betrachten im Bezug auf Straßennetze die Resilienz als eine Fähigkeit, Störungen zu bewältigen und die \textit{Serviceability} eines Netzes aufrechtzuerhalten oder wiederherzustellen\cite{kaub2024}.
+Resilienz ist kein einheitlich definierter Begriff. Calvert und Snelder definieren für ihre Forschung die Resilienz als die Fähigkeit eines Systems, sich von Schäden zu erholen und seine ursprüngliche Funktionsfähigkeit wiederherzustellen\cite{calvert2017}. Kaub et al. betrachten in Bezug auf Straßennetze die Resilienz als eine Fähigkeit, Störungen zu bewältigen und die \textit{Serviceability} eines Netzes aufrechtzuerhalten oder wiederherzustellen\cite{kaub2024}.
 
-Bruneau et al. betrachten die Resilienz als zeitabhängig, indem sie die Leistungsfähigkeit eines Systems als zeitabhängige Größe verstehen\cite{bruneau2003}. Eine Störung kann zu einer geringeren Systemleistung führen, woraufhin eine Wiederherstellungsphase schrittweise zum ursprünglichen Leistungsniveaus folgt\cite{bruneau2003}. Damit umfasst Resilienz nicht nur eintretende Funktionseinschränkungen, sondern auch dessen Entwicklung und Wiederherstellung im Zeitverlauf\cite{bruneau2003}.
+Bruneau et al. betrachten hingegen die Resilienz als zeitabhängig, indem sie die Leistungsfähigkeit eines Systems als zeitabhängige Größe verstehen\cite{bruneau2003}. Eine Störung kann zu einer geringeren Systemleistung führen, woraufhin eine Wiederherstellungsphase schrittweise zum ursprünglichen Leistungsniveau folgt\cite{bruneau2003}. Damit umfasst Resilienz nicht nur eintretende Funktionseinschränkungen, sondern auch die Entwicklung und Wiederherstellung der Systemleistung im Zeitverlauf\cite{bruneau2003}.
 
 Für dieses Papier wird Resilienz als eine zeitabhängige Eigenschaft eines Systems verstanden, bei deren Bewertung die störungsbedingten Funktionsverluste wie auch die Folgeeffekte in der Systemleistung über einen zeitlichen Verlauf berücksichtigt werden.
 
 %-------------------------------------------------------------------------------------------------
 % Subsection 2.2 Kritische Infrastrukturen, Interdependenzen und kaskadierende Ausfälle
-
-Kritische Infrastrukturen können als komplexe, miteinander verknüpfte Systeme verstanden werden, die wesentliche Dienstleistungen bereitstellen\cite{chiaradonna2007}. Aufgrund dieser Vernetzung ist es relevant, dass bei der Analyse die Abhängigkeit zwischen einzelnen Infrastrukturen zu berücksichtigen ist\cite{chiaradonna2007}.
-
-Laprie et al. beschreiben Interdependenzen als ein gegenseitiges Verhältnis zwischen zwei Infrastrukturen, bei dem der Zustand einer Infrastruktur den Zustand der anderen beeinflusst oder mit diesem in Verbindung steht\cite{laprie2007}. Solche Interdependenzen können unterschiedliche Formen annehmen und beispielsweise physischer oder cyberbezogener Art sein\cite{chiaradonna2007}. Dadurch können sich Veränderungen oder Ausfälle einer Infrastruktur auf andere abhängige Infrastrukturen auswirken\cite{laprie2007}.
-
-Wenn der Ausfall einer Infrastruktur zur Folge hat, dass
-
 %-Eine Ableitung zu kaskadierende Ausfälle aufbauen (Laprie, Buldyrev, vielleicht lickert)
 
+Kritische Infrastrukturen können als komplexe, miteinander verknüpfte Netzwerke verstanden werden, die wesentliche Dienstleistungen bereitstellen\cite{chiaradonna2007}. Aufgrund dieser Vernetzung ist es relevant, dass bei der Analyse die Abhängigkeit zwischen einzelnen Infrastrukturen zu berücksichtigen ist\cite{chiaradonna2007}.
 
+Interdependenzen werden beschrieben als ein gegenseitiges Verhältnis zwischen zwei Infrastrukturen, bei dem der Zustand einer Infrastruktur den Zustand der anderen beeinflusst oder mit diesem in Verbindung steht\cite{laprie2007}. Solche Interdependenzen können unterschiedliche Formen annehmen und beispielsweise physischer oder cyberbezogener Art sein\cite{chiaradonna2007}.
+
+Ein Ausfall einer Infrastruktur, der dazu führt, dass Komponenten einer anderen Infrastruktur ausfallen, bezeichnet man als kaskadierenden Ausfall\cite{laprie2007}. Buldyrev et al. zeigen darüber hinaus, dass sich ein solcher Ausfallprozess in interdependenten Netzwerken rekursiv fortsetzen kann. Dabei können Ausfälle von Knoten in einem Netwerk zu Ausfällen in einem abhängigen Netzwerk führen, die wiederum weitere Ausfälle im ursprünglichen Netzwerk verursachen können\cite{buldyrev2010}. Dadurch zeigt sich, dass eine Störung in einem lokalen Netzwerk sich zu einer Ausfallkaskade entwickeln kann\cite{buldyrev2010}.
+
+%-------------------------------------------------------------------------------------------------
 % Subsection 2.3 Zeitabhängige Funktionsfähigkeit und Lifetimes
 
+Lickert et al. untersuchen mithilfe eines Netzwerkmodells Schadenskaskaden, die durch Ausfälle der Stromversorgungen verursacht werden\cite{lickert2024}. Das bedeutet aber nicht zwangsläufig, dass kritische Infrastrukturen sofort ausfallen müssen. Beispielsweise haben Krankenhäuser Notstromaggregate\cite{lickert2024}.
+
+Kritische Infrastrukturen können ohne externe Versorgung jedoch nicht unbegrenzt funktionsfähig bleiben und verlieren nach einer bestimmten Zeit ihre Funktionsfähigkeit\cite{lickert2024}. Lickert et al. bezeichnen diese Zeitspanne als \textit{Lifetimes}\cite{lickert2024}. Neben den \textit{Lifetimes} modellieren sie auch die \textit{Repair Times}. Diese beschreiben die Zeitspanne, die eine kritische Infrastruktur benötigt, um nach der Wiederherstellung der erforderlichen Versorgungsleistung wieder funktionsfähig zu werden\cite{lickert2024}. Lickert et al. modellieren die Funktionszustände binär und unterscheiden zwischen einem funktionsfähigen (\textit{operative}) und einem nicht funktionsfähigen (\textit{dysfunctional}) Zustand\cite{lickert2024}.
+
+
 %Lickert primär
+% -Versorgungsausfall
+% nicht zwingend sofortiger Funktionsverlust
+% zeitliche Überbrückung
+% lifetimes
+% funktinaler Zusatndswechsel
+
+%-------------------------------------------------------------------------------------------------
 
 % Subsection 2.4 Straßenesilienz, serviceability und Erreichbarkeit
 
@@ -57,10 +68,45 @@ Wenn der Ausfall einer Infrastruktur zur Folge hat, dass
 %-ggf. Loss of Serviceability
 %-Zsmh zwischen Netzstörung und Erreichbarkeit
 
+Neben der Funktionsfähigkeit kritischer Infrastrukturen ist bei Störungen auch deren Erreichbarkeit über das Straßennetz relevant\cite{lickert2024,kaub2024}. Beispielsweise sind Rettungsdienste auf die vorhandenen Straßennetze angewiesen\cite{kaub2024}.
+
+Kaub et al. verstehen \textit{Serviceability} als die Verfügbarkeit von Verbindungen zweier Netzwerkknoten. Diese Verbindungen bestimmen die Distanz und weitere Reisekosten\cite{kaub2024}.
+
+Störungen können zu einer Verringerung der \textit{Serviceability} eines Straßennetzes führen\cite{berdica2002}. Laut Berdica ist die Vulnerabilität eines Straßenverkehrssystems dessen Anfälligkeit gegenüber Ereignissen, die zu einer erheblichen Verminderung der \textit{Serviceability} führen können\cite{berdica2002}.
+
+Für die Bewertung der Resilienz können unterschiedliche Aspekte in Betracht gezogen werden. Zum Beispiel durch die Wiederherstellungszeit sowie der Anteil der nach einer Störung verbleibenden \textit{Serviceability}\cite{kaub2024}.
+
+Calvert und Snelder haben den \textit{Link Performance Index for Resilience} (LPIR) als Ansatz entwickelt, um die Resilienz einzelner Straßenabschnitte im Zusammenhang mit einem größeren Straßennetz zu bewerten\cite{calvert2017}. Dieser untersucht, wie sehr ein Straßenabschnitt nach einer Störung des Verkehrsflusses widerstehen kann und wie gut er sich danach wieder erholt\cite{calvert2017}. Jedoch benötigt der LPIR viele Detaildaten und ist daher weniger für hypothetische Szenarien geeignet\cite{kaub2024}. Auch vollständige Ausfälle von Straßenabschnitten lassen sich damit nur begrenzt abbilden\cite{kaub2024}.
+
+Ein weiterer Ansatz zur Bewertung der Resilienz ist der \textit{Loss of Serviceability} (LoS) Index\cite{kaub2024}. Hierbei werden die kürzesten Wege zwischen Startknoten und einem Zielknoten in einem vollständig funktionsfähigen und beeinträchtigten Netzwerk verglichen\cite{kaub2024}. Beeinträchtigung der \textit{Serviceability} können zu einer Erhöhung der Reisezeit oder der zurücklegenden Distanz führen\cite{kaub2024}. So kann analysiert werden, welche Umwege durch den Ausfall bestimmter Straßenabschnitte entstehen\cite{kaub2024}. Sollte jedoch einer der Knotenpunkte vom restlichen Netzwerk getrennt werden, so wird die Distanz unendlich und der Index verliert an Aussagekraft\cite{kaub2024}.
+
+%Kaub hat nicht den LoS gemacht erwähnt den halt nur und deren Funktion
+
+
+%-------------------------------------------------------------------------------------------------
 % Subsection 2.5 Robustness of Acessibility (RoA)
 
+Aufgrund der Schwächen der vorherigen Ansätze führen Kaub et al. den \textit{Robustness of Accessabilty} (RoA) ein zur Bewertung urbaner Straßennetze\cite{kaub2024}. Dabei werden anstatt einzelner Straßenverbindungen ganze Straßennetze verglichen bei einer intakten als auch gestörten Straßennetz
+
+
+
+
+%Grundidee des RoA
+%Vergleich des ungestörten mit dem gestörten Straßennetz
+%kürzeste wege
+%Behandlung vollständig unerreichbarer Ziele
+%die urspügnliche Formel von KAub
+%kurze Interpretation des Wertes
+
+
+
+
+
+
+
+
 %-Kaub hauptfokus super wichtig
-%-Strapennetz als Graph
+%-Straßennetz als Graph
 %-intakter Graph
 %-gestörter Graph
 %-Source Destination Paare
@@ -72,6 +118,12 @@ Wenn der Ausfall einer Infrastruktur zur Folge hat, dass
 %-bestehende Grenze für eure Forschungsfrage
 
 % Subsection 2.6 Synthese des Forschungsstands
+
+
+%Lickert bzw die arbeiten zu interdependezen betrachten funktionale und zeitabhängige Ausfälle
+%Kaub betzrachte mit dem RoA die erreichbarkeit über eine gestörtes Straßennetz
+%Diese perspektiven behandlen unterschieldiche Aspekte
+%Daraus leutest du die Grundlage für deine Forschungsfrage ab.
 
 %-Vergleich sämtlicher Literatur miteinander
 %-Aufmerksamkeit auf die Lücke herleiten. Was bisher fehlt
