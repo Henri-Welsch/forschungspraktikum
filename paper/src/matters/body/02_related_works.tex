@@ -46,7 +46,7 @@ Ein Ausfall einer Infrastruktur, der dazu führt, dass Komponenten einer anderen
 %-------------------------------------------------------------------------------------------------
 % Subsection 2.3 Zeitabhängige Funktionsfähigkeit und Lifetimes
 
-Lickert et al. untersuchen mithilfe eines Netzwerkmodells Schadenskaskaden, die durch Ausfälle der Stromversorgungen verursacht werden\cite{lickert2024}. Das bedeutet aber nicht zwangsläufig, dass kritische Infrastrukturen sofort ausfallen müssen. Beispielsweise haben Krankenhäuser Notstromaggregate\cite{lickert2024}.
+Lickert et al. untersuchen mithilfe eines Netzwerkmodells Schadenskaskaden, die durch Ausfälle der Stromversorgungen verursacht werden\cite{lickert2024}. Unterschiedliche kritische Infrastrukturen und deren Abhängigkeiten werden in einem Netzwerkmodell dargestellt\cite{lickert2024}. Das bedeutet aber nicht zwangsläufig, dass kritische Infrastrukturen sofort ausfallen müssen. Beispielsweise haben Krankenhäuser Notstromaggregate\cite{lickert2024}.
 
 Kritische Infrastrukturen können ohne externe Versorgung jedoch nicht unbegrenzt funktionsfähig bleiben und verlieren nach einer bestimmten Zeit ihre Funktionsfähigkeit\cite{lickert2024}. Lickert et al. bezeichnen diese Zeitspanne als \textit{Lifetimes}\cite{lickert2024}. Neben den \textit{Lifetimes} modellieren sie auch die \textit{Repair Times}. Diese beschreiben die Zeitspanne, die eine kritische Infrastruktur benötigt, um nach der Wiederherstellung der erforderlichen Versorgungsleistung wieder funktionsfähig zu werden\cite{lickert2024}. Lickert et al. modellieren die Funktionszustände binär und unterscheiden zwischen einem funktionsfähigen (\textit{operative}) und einem nicht funktionsfähigen (\textit{dysfunctional}) Zustand\cite{lickert2024}.
 
@@ -86,7 +86,23 @@ Ein weiterer Ansatz zur Bewertung der Resilienz ist der \textit{Loss of Servicea
 %-------------------------------------------------------------------------------------------------
 % Subsection 2.5 Robustness of Acessibility (RoA)
 
-Aufgrund der Schwächen der vorherigen Ansätze führen Kaub et al. den \textit{Robustness of Accessabilty} (RoA) ein zur Bewertung urbaner Straßennetze\cite{kaub2024}. Dabei werden anstatt einzelner Straßenverbindungen ganze Straßennetze verglichen bei einer intakten als auch gestörten Straßennetz
+Aufgrund der Schwächen des LoS führen Kaub et al. den \textit{Robustness of Accessibility} (RoA) zur Bewertung urbaner Straßennetze ein\cite{kaub2024}. Der RoA betrachtet im Gegensatz zum LoS nicht einzelne Straßenabschnitte, sondern das gesamte Straßennetz\cite{kaub2024}.
+
+
+Zur Berechnung des RoA von Kaub et al. wird das Straßennetz als Graph dargestellt\cite{kaub2024}. Dabei wird ein intaktes Netz mit einer gestörten Version desselben Netzes auf Basis der kürzesten Wege verglichen\cite{kaub2024}. Zusätzlich berücksichtigt der RoA beim Vergleich der Straßennetzzustände auch einzelne unerreichbare Orte sowie Teile des Netzes, die weiterhin nutzbar bleiben\cite{kaub2024}.
+
+
+
+Der Wert des RoA wird dann basierend auf den ermittelten kürzesten Wegen berechnet. Dabei beschreibt $c(s_j,d_j)$ die Länge des kürzesten Weges im intakten Netz und $c'(s'_j,d'_j)$ die entsprechende Länge im gestörten Netz. Für jedes ausgewählte Paar wird das Verhältnis dieser beiden Weglängen bestimmt. Die einzelnen Verhältnisse werden dann mit $a_{C,j}$ gewichtet und zu einem Endwert des RoA zusammengeführt\cite{kaub2024}.
+
+\begin{equation}
+    \text{RoA}(\mathcal{C}) = \sum_{j=1}^{m} \left( a_{\mathcal{C},j} \cdot \frac{c(s_j,d_j)}{c'(s'_j, d'_j)} \right)
+\end{equation}
+
+
+
+Der RoA kann Werte zwischen 0 und 1 annehmen. Ein hoher Wert spricht für ein resilientes Straßennetz, während ein niedriger Wert auf eine geringere Robustheit hinweist. Der Wert 0 entspricht dabei einem vollständigen Ausfall aller betrachteten Verbindungen\cite{kaub2024}. Falls im intakten Netzwerk eine Route vorhanden ist, im gestörten Netzwerk jedoch nicht mehr, wird der entsprechende Quotient mit 0 bewerter\cite{kaub2024}.
+
 
 
 
@@ -97,11 +113,6 @@ Aufgrund der Schwächen der vorherigen Ansätze führen Kaub et al. den \textit{
 %Behandlung vollständig unerreichbarer Ziele
 %die urspügnliche Formel von KAub
 %kurze Interpretation des Wertes
-
-
-
-
-
 
 
 
@@ -117,7 +128,14 @@ Aufgrund der Schwächen der vorherigen Ansätze führen Kaub et al. den \textit{
 %-Stärke des RoA
 %-bestehende Grenze für eure Forschungsfrage
 
-% Subsection 2.6 Synthese des Forschungsstands
+% Subsection 2.6 Synthese des Forschungsstand
+
+For the present paper, the approaches of Kaub et al. and Lickert et al. are particularly relevant, as they consider different aspects of the resilience of critical infrastructure. While Kaub et al. examine the accessibility in disrupted road networks\cite{kaub2024}, they do not consider the functional aspect of facilities. Lickert et al. model the funtional aspect as well as the cascading failures of interdependent networks, taking into account \textit{lifetimes} and \textit{repair times}\cite{lickert2024}.
+
+These two approaches examine the aspect of road based accessibility and the time dependent functionality of critical infrastructure separately.
+A combined assessment of both aspects is not provided by these two approaches.
+
+Based on this, the following chapter presents an approach that extends the RoA with a time dependent functional aspect.
 
 
 %Lickert bzw die arbeiten zu interdependezen betrachten funktionale und zeitabhängige Ausfälle
@@ -129,17 +147,10 @@ Aufgrund der Schwächen der vorherigen Ansätze führen Kaub et al. den \textit{
 %-Aufmerksamkeit auf die Lücke herleiten. Was bisher fehlt
 %-Vielleicht visuelle Veranschaulichung anhand einer Tabelle
 
-
-
-Kaub et al. betrachten Erreichbarkeit gestörten Straßennetzen, während Calvert sowie Berdica und Snelder ihren Ansatz besonders auf die Vulnerabilität, Servicability und Resilienz von Straßennetzen betrachten \cite{berdica2002,calvert2017,kaub2024,lickert2024}.
-
-
-
-
--Welche Aspekte sind vorhanden
--Definitionen (Zitierung von anderen Papers)
--was müsste man tun damit das problem gelöst wird
--meiste literatur zitiert wird hier.
--RoA
+%-Welche Aspekte sind vorhanden
+%-Definitionen (Zitierung von anderen Papers)
+%-was müsste man tun damit das problem gelöst wird
+%-meiste literatur zitiert wird hier.
+%-RoA
 
 %\end{document}
