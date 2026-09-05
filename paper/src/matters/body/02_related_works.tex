@@ -23,6 +23,8 @@
 
 Vorhandene Methoden zur Einschätzung der Resilienz kritischer Infrastrukturen berücksichtigen verschiedene Teilaspekte des Verhalten des Systems bei Störungen\cite{berdica2002,calvert2017,kaub2024,lickert2024}.
 
+Existing methods for assessing the resilience of critical infrastructure consider various aspects of the system behavior during disruptions\cite{berdica2002,calvert2017,kaub2024,lickert2024}.
+
 %Subsection 2.1 Resilienz und kritische Infrastrukturen
 
 
@@ -32,6 +34,19 @@ Resilienz ist kein einheitlich definierter Begriff. Calvert und Snelder definier
 Bruneau et al. betrachten hingegen die Resilienz als zeitabhängig, indem sie die Leistungsfähigkeit eines Systems als zeitabhängige Größe verstehen\cite{bruneau2003}. Eine Störung kann zu einer geringeren Systemleistung führen, woraufhin eine Wiederherstellungsphase schrittweise zum ursprünglichen Leistungsniveau folgt\cite{bruneau2003}. Damit umfasst Resilienz nicht nur eintretende Funktionseinschränkungen, sondern auch die Entwicklung und Wiederherstellung der Systemleistung im Zeitverlauf\cite{bruneau2003}.
 
 Für dieses Papier wird Resilienz als eine zeitabhängige Eigenschaft eines Systems verstanden, bei deren Bewertung die störungsbedingten Funktionsverluste wie auch die Folgeeffekte in der Systemleistung über einen zeitlichen Verlauf berücksichtigt werden.
+
+
+
+
+
+Resilience is not a uniformly defined concept. Calvert and Snelder define in their study as "the ability of a systems cope with disturbances and recover its original function after a loss of function"\cite{calvert2017}. Kaub et al. consider in terms of road networks the resilience as an ability to overcome disruptions as well as to maintain or regain its \textit{serviceability}\cite{kaub2024}.
+
+Bruneau et al. views resilience as time-dependent, understanding the performance of a system as a time-dependent quantity\cite{bruneau2003}. A disruption can lead to reduced system performance, followed by a recover phase gradually retunrs to the original performance level\cite{bruneau2003}. Thus, resilience encompasses not only functional limitations but also the development and restoration of a system performance over time\cite{bruneau2003}.
+
+For the purposes of this paper, resilience is understood as a time-dependent property of a system, the evaluation of disruptions related functional losses as well as the consequential effects on a system performance over a period of time are taken into account.
+
+
+
 
 %-------------------------------------------------------------------------------------------------
 % Subsection 2.2 Kritische Infrastrukturen, Interdependenzen und kaskadierende Ausfälle
@@ -43,12 +58,34 @@ Interdependenzen werden beschrieben als ein gegenseitiges Verhältnis zwischen z
 
 Ein Ausfall einer Infrastruktur, der dazu führt, dass Komponenten einer anderen Infrastruktur ausfallen, bezeichnet man als kaskadierenden Ausfall\cite{laprie2007}. Buldyrev et al. zeigen darüber hinaus, dass sich ein solcher Ausfallprozess in interdependenten Netzwerken rekursiv fortsetzen kann. Dabei können Ausfälle von Knoten in einem Netwerk zu Ausfällen in einem abhängigen Netzwerk führen, die wiederum weitere Ausfälle im ursprünglichen Netzwerk verursachen können\cite{buldyrev2010}. Dadurch zeigt sich, dass eine Störung in einem lokalen Netzwerk sich zu einer Ausfallkaskade entwickeln kann\cite{buldyrev2010}.
 
+
+
+
+
+Critical infrastructures can be understood as complex, interconnected networks that provide essential services\cite{chiaradonna2007}. Because of this interconnectedness, it is relevant to take the interdependencies between individual infrastructure components need to taking into account in the analysis\cite{chiaradonna2007}.
+
+An interdependency can be described as a reciprocal relationship between two infrastructures in which state of one infrastructure influences or is related to the state of the other\cite{laprie2007}. Such interdependencies can take various forms and may, for example, be physical or cyber-related in nature\cite{chiaradonna2007}.
+
+An infrastructure failure that causes components of another infrastructure to fail is referred to as a cascading failure\cite{laprie2007}. Buldyrev et al. further demonstrate that such a failure process can continue recursively in interdependent networks. In this context, failures of nodes in one network can lead to failures in a dependent network, which in turn can cause further failures in the original network\cite{buldyrev2010}. This demonstrates that a disruption in a one network can develop into a cascade of failures\cite{buldyrev2010}.
+
+
+
 %-------------------------------------------------------------------------------------------------
 % Subsection 2.3 Zeitabhängige Funktionsfähigkeit und Lifetimes
 
 Lickert et al. untersuchen mithilfe eines Netzwerkmodells Schadenskaskaden, die durch Ausfälle der Stromversorgungen verursacht werden\cite{lickert2024}. Unterschiedliche kritische Infrastrukturen und deren Abhängigkeiten werden in einem Netzwerkmodell dargestellt\cite{lickert2024}. Das bedeutet aber nicht zwangsläufig, dass kritische Infrastrukturen sofort ausfallen müssen. Beispielsweise haben Krankenhäuser Notstromaggregate\cite{lickert2024}.
 
 Kritische Infrastrukturen können ohne externe Versorgung jedoch nicht unbegrenzt funktionsfähig bleiben und verlieren nach einer bestimmten Zeit ihre Funktionsfähigkeit\cite{lickert2024}. Lickert et al. bezeichnen diese Zeitspanne als \textit{Lifetimes}\cite{lickert2024}. Neben den \textit{Lifetimes} modellieren sie auch die \textit{Repair Times}. Diese beschreiben die Zeitspanne, die eine kritische Infrastruktur benötigt, um nach der Wiederherstellung der erforderlichen Versorgungsleistung wieder funktionsfähig zu werden\cite{lickert2024}. Lickert et al. modellieren die Funktionszustände binär und unterscheiden zwischen einem funktionsfähigen (\textit{operative}) und einem nicht funktionsfähigen (\textit{dysfunctional}) Zustand\cite{lickert2024}.
+
+
+
+
+Lickert et al. use a network model to investigate failure cascades caused by power outages\cite{lickert2024}. Various critical infrastructures and their interdependencies are represented in a network model\cite{lickert2024}. However, that does not necessarily mean that critical infrastructures will fail immediately\cite{lickert2024}. For example, hospitals are required to have emergency power generators\cite{lickert2024}.
+
+However, critical infrastructures cannot remain operational indefinitely without external supply and lose their functionality after a certain period of time\cite{lickert2024}. Lickert et al. refer to this period as \textit{lifetimes}\cite{lickert2024}. In addition to \textit{lifetimes}, they also model \textit{repair times}\cite{lickert2024}. These describe the time required for a critical infrastructure to become operational again after the necessary supply capacity has been restored\cite{lickert2024}. Lickert et al. model functional states using a binary classification and distinguish between an \textit{operative} and an \textit{dysfunctional} state\cite{lickert2024}.
+
+
+
 
 
 %Lickert primär
@@ -81,6 +118,20 @@ Calvert und Snelder haben den \textit{Link Performance Index for Resilience} (LP
 Ein weiterer Ansatz zur Bewertung der Resilienz ist der \textit{Loss of Serviceability} (LoS) Index\cite{kaub2024}. Hierbei werden die kürzesten Wege zwischen Startknoten und einem Zielknoten in einem vollständig funktionsfähigen und beeinträchtigten Netzwerk verglichen\cite{kaub2024}. Beeinträchtigung der \textit{Serviceability} können zu einer Erhöhung der Reisezeit oder der zurücklegenden Distanz führen\cite{kaub2024}. So kann analysiert werden, welche Umwege durch den Ausfall bestimmter Straßenabschnitte entstehen\cite{kaub2024}. Sollte jedoch einer der Knotenpunkte vom restlichen Netzwerk getrennt werden, so wird die Distanz unendlich und der Index verliert an Aussagekraft\cite{kaub2024}.
 
 %Kaub hat nicht den LoS gemacht erwähnt den halt nur und deren Funktion
+
+
+In addition to the functional aspect of critical infrastructure, its accessability through the road network is also relevant in the event of disruptions\cite{lickert2024,kaub2024}. For instance, emergency services rely on existing road network\cite{kaub2024}.
+
+Kaub et al. understand \textit{serviceability} as the availability of connections between two network nodes. These connections determine the distance and other costs for travel\cite{kaub2024}.
+
+Disruptions can lead to a reduction in the \textit{serviceability} of a road network\cite{berdica2002}. According to Berdica, the vulnerability of a road traffic system is its susceptibility to events that can lead to a significant reduction in \textit{serviceability}\cite{berdica2002}.
+
+Various aspects can be considered when assessing resilience. For instance, the recovery time and the degree of \textit{serviceability}\cite{kaub2024}.
+
+Calvert and Snelder developed the \textit{Link Performance Index for Resilience} (LPIR) as a method for assessing the resilience of individual road segments within the context of a larger road network\cite{calvert2017}. This index examines how well a raod segment can withsatnd a 
+
+
+
 
 
 %-------------------------------------------------------------------------------------------------
