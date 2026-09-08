@@ -1,67 +1,81 @@
 %! Author = WelJo
 %! Date = 8/18/2026
 
-\newpage
-
-\section{Implementierung und Case Study Setup}
+\section{Implementation and Case Study Setup}
 \label{sec:implementation}
 
-% - Datengrundlagen (Vielleicht Tabelle)
-%   - OpenStreetMap
-%   - Hochwasserflächen
-%   - OSM Power Tags
-%   - OSM Water Tags
-%   - Modellparameter
-% - Softwarearchitektur
-% - Implementierungslogik (Pseudo Code?)
+The proposed framework is implemented as a modular Python-based simulation and caching pipeline, applied to the city of Trier, Germany. The system integrates open-source geospatial data, official hydrodynamic flood stages, and network-constrained utility dependencies. To ensure reproducible, high-performance evaluation across multi-day disaster horizons, the architecture strictly decouples heavy geospatial precomputation from downstream visual simulation and quantitative evaluation.
 
-The proposed framework is implemented as a Python-based simulation pipeline, applied to the city of Trier, Germany, using open-source geospatial data and hydrodynamic flood models.
+\subsection{Study Area and Data Acquisition}
+\label{subsec:study-area-and-data-acquisition}
 
-\subsection{Data Acquisition and Pre-processing}
-\label{subsec:data-acquisition-and-pre-processing}
+\subsubsection{Urban Road Network and Facility Extraction}
+Geospatial features for the administrative boundary of Trier ($\sim 117\,\text{km}^2$) are extracted from OpenStreetMap (OSM) via the \texttt{OSMnx} library \cite{osmwiki_features2026}. The transport infrastructure is modeled as an undirected road network graph $G = (V, E)$ filtered to the ``drive'' network type to reflect motorized emergency services (ambulances and fire engines). 
 
-\subsubsection{Urban and Utility Networks}
-\label{subsubsec:urban-and-utility-networks}
-Urban features are extracted from OpenStreetMap (OSM) using the \texttt{OSMnx} library. We identify three categories of critical facilities in Trier:
+\noindent
+Critical facilities are queried using standard OSM tag schemas and categorized into destination POIs and supporting utility infrastructure:
 \begin{itemize}
-    \item \textbf{POIs}: Hospitals (3) and fire stations (12).
-    \item \textbf{Power Infrastructure}: Substations and power plants (131).
-    \item \textbf{Water Infrastructure}: Water works, water towers, and pumping stations (11).
+    \item \textbf{Critical POIs ($\mathcal{D}$)}: $3$ acute-care hospitals (\texttt{amenity=hospital}) and $12$ fire stations (\texttt{amenity=fire\_station}).
+    \item \textbf{Power Infrastructure ($\mathcal{I}_{\text{power}}$)}: $131$ assets consisting of electrical substations (\texttt{power=substation}) and generation plants (\texttt{power=plant}).
+    \item \textbf{Water Infrastructure ($\mathcal{I}_{\text{water}}$)}: $11$ assets comprising water works, water towers, and pumping stations (\texttt{man\_made} $\in$ \{\texttt{water\_works}, \texttt{water\_tower}, \texttt{pumping\_station}\}).
 \end{itemize}
+To enable graph-based distance routing, facility polygon footprints are projected to representative interior points ($\mathbf{p}_i$) and snapped to their nearest street network nodes $\pi(\mathbf{p}_i) \in V$ using spatial R-tree indexing.
 
-The road network is modeled as an undirected graph $G$, restricted to the ``drive'' service level to represent ambulance and fire engine routing.
+\subsubsection{Empirical Hydrodynamic Flood Hazard Model}
+Inundation dynamics along the Moselle river are modeled using official hydrodynamic water level stages obtained from the Rhineland-Palatinate Water Management Authority (WMS service). The model spans $29$ discrete flood polygons corresponding to gauge heights from $9.00\,\text{m}$ to $11.80\,\text{m}$ in $0.10\,\text{m}$ increments, where $11.80\,\text{m}$ corresponds to a 100-year recurrence flood event (HQ100). The $336\,\text{h}$ (14-day) crisis hydrograph is discretized into five continuous phases: a $48\,\text{h}$ dry pre-event phase, a $96\,\text{h}$ linear rising limb reaching the HQ100 peak, a $48\,\text{h}$ peak plateau at $11.80\,\text{m}$, a $96\,\text{h}$ recession limb, and a $48\,\text{h}$ post-event recovery window. Along the linear rising and falling limbs, continuous flood progress is mapped hourly to the nearest discrete gauge stage, with each discrete stage level active for approximately $3.4\,\text{h}$.
 
-\subsubsection{Hydrodynamic Flood Stages}
-\label{subsubsec:hydrodynamic-flood-stages}
-Inundation data for the Moselle river is integrated using 29 discrete hydrodynamic gauge stages, ranging from a gauge height of $9.00\,\text{m}$ to $11.80\,\text{m}$. The $11.80\,\text{m}$ stage corresponds to a 100-year flood event (HQ100). These polygons are pre-processed and simplified to ensure efficient intersection checks during the 336-hour simulation.
+\subsection{Software Architecture and Layered Caching Pipeline}
+\label{subsec:software-architecture-and-caching}
 
-\subsection{Simulation Pipeline}
-\label{subsec:simulation-pipeline}
+Evaluating shortest-path accessibility for hundreds of origin points across 336 hourly intervals across multiple disruption tiers is computationally prohibitive if geometric intersections and network graphs are rebuilt naively at each timestep. As shown in Figure~\ref{fig:pipeline}, the framework resolves this through a multi-stage precomputation and caching pipeline.
 
-The simulation covers a 14-day (336-hour) disaster scenario. We use a synthetic temporal profile consisting of a 48-hour pre-event period, a 96-hour linear rise to the HQ100 peak, a 48-hour peak duration, a 96-hour recession, and a 48-hour post-event recovery phase.
 
-\subsubsection{NCNN Coupling}
-\label{subsubsec:ncnn-coupling}
-The coupling between POIs and infrastructure is established at the start of the simulation using the NCNN algorithm. Each POI is snapped to the road network, and its nearest utility node is identified via multi-source Dijkstra. The resulting mapping serves as the topology for cascading failures.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\linewidth]{resources/pipeline}
+    \caption{Modular software architecture: Precomputed stage subgraphs and FSM trajectories feed the dynamic RoA simulation engine, producing a master data bundle that drives decoupled visual simulation and statistical evaluation.}
+    \label{fig:pipeline}
+\end{figure}
 
-\subsubsection{Temporal Resolution}
-\label{subsubsec:temporal-resolution}
-For each hour $t$, the simulation performs three operations:
+
+
+\subsubsection{Discrete Stage Graph Slicing}
+Because continuous time $t \in [0, 335]$ maps onto a finite set of $K=29$ discrete flood stages $k \in \{0, \dots, K-1\}$, spatial intersections are precomputed once per stage rather than per hour:
 \begin{enumerate}
-    \item \textbf{Flood Interpolation}: Determine the current inundation polygon based on the temporal profile and hydrodynamic stages.
-    \item \textbf{Network Disruption}: Remove road edges intersecting the flood polygon to update $G(t)$.
-    \item \textbf{FSM Update}: Update the health state $\sigma(t)$ and buffers $b_r(t)$ for every facility based on direct flooding and utility connection status.
+    \item \textbf{Edge Inundation Slicing}: For each stage polygon $\mathcal{P}_k$, geometric intersection identifies all submerged road edges $E_{\text{flood}, k} \subset E$. The passable subgraph $G_k = (V, E \setminus E_{\text{flood}, k})$ is pre-sliced and cached.
+    \item \textbf{Facility Flood Status}: Direct inundation matrices indicate whether $\mathbf{p}_i \in \mathcal{P}_k$ for all POIs and utility assets.
 \end{enumerate}
 
-\subsection{Simulation Environment}
-\label{subsec:simulation-environment}
+\subsubsection{Unified Multi-Tier Data Bundle}
+The core simulation engine (\texttt{run\_multi\_tier\_evaluation.py}) executes the dual-resource FSM across the hydrograph, determines the set of active facilities $\mathcal{D}_{\text{active}}(t)$, and evaluates time-dependent shortest paths on the cached subgraphs $G_{k(t)}$. The complete spatio-temporal trajectory across all experimental tiers is serialized into a master JSON data bundle (\texttt{multi\_tier\_roa\_bundle.json}).
 
-The simulation is built using the following software stack:
+\subsubsection{Decoupled Downstream Applications}
+The master bundle serves two decoupled downstream tools without re-running heavy spatial graph calculations:
 \begin{itemize}
-    \item \textbf{Python 3.10+}: Core logic and FSM implementation.
-    \item \textbf{GeoPandas \& Shapely}: Geospatial operations and flood intersection checks.
-    \item \textbf{NetworkX}: Graph algorithms for shortest-path calculations.
-    \item \textbf{OSMnx}: OSM data acquisition and network modeling.
+    \item \textbf{Interactive Visual Simulation}: Folium/Leaflet-based Jupyter notebooks (\texttt{flood\_simulation\_with\_backup.ipynb}) and standalone HTML dashboards render interactive, time-scrubbable map layers illustrating physical edge closures, facility FSM transitions, and dynamic isochrones.
+    \item \textbf{Quantitative Evaluation Pipeline}: Analysis scripts (\texttt{generate\_paper\_evaluation.py}) extract aggregate resilience metrics ($\text{RoA}_{\text{Int}}$), calculate district-level nadirs, generate publication figures, and export automated \LaTeX\ tables.
 \end{itemize}
 
-We utilize a 500-point origin sample distributed across the study area boundary to compute the aggregate $\text{RoA}$ score. The baseline cost $c_{\text{base}}$ is pre-computed on the undisrupted network for all POI types.
+
+\subsection{Multi-Tier Experimental Configuration}
+\label{subsec:multi-tier-experimental-configuration}
+
+To isolate transport network degradation from cascading utility failures, we formulate four progressive experimental tiers:
+\begin{itemize}
+    \item \textbf{Level A (Road Baseline)}: Assumes unlimited backup generation ($B_{\text{power}} = \infty, B_{\text{water}} = \infty$). POIs remain operational unless directly submerged. Accessibility variations stem entirely from road inundation detours.
+    \item \textbf{Level B1 (Power Cascade)}: Introduces finite electrical backup reserves ($B_{\text{power}} = 72\,\text{h}$ for hospitals, $24\,\text{h}$ for fire stations), while water buffers remain unconstrained ($B_{\text{water}} = \infty$).
+    \item \textbf{Level B2 (Water Cascade)}: Evaluates hydraulic grid vulnerability ($B_{\text{water}} = 48\,\text{h}$ for hospitals, $12\,\text{h}$ for fire stations), with electrical buffers unconstrained ($B_{\text{power}} = \infty$).
+    \item \textbf{Level C (Compound Multi-Infrastructure)}: Represents compound reality where both power and water grids are vulnerable. Includes empirical repair delays ($T_{\text{repair}} = 48\,\text{h}$ hospitals, $24\,\text{h}$ fire stations) and a $15\,\%$ hysteresis restart threshold ($\theta = 0.15$).
+\end{itemize}
+
+\subsection{Dynamic Simulation Engine and Computational Execution}
+\label{subsec:computational-execution}
+
+The core of the implementation is the dynamic simulation engine (\texttt{dynamic\_roa.py}), which orchestrates the spatio-temporal evaluation of accessibility across the 336-hour disaster horizon. Citizen demand is modeled via $m = 3{,}972$ origin nodes $S = \{s_1, \dots, s_m\}$ sampled across the municipal street network using a $50\,\text{m}$ spatial grid discretization ($\text{seed}=42$). Compared to the $300\,\text{m}$ regional benchmark \cite{kaub2024}, this higher resolution is critical for capturing localized street-level closures in the urban core. Undisrupted baseline travel costs $c(s_j, d_j, t_0)$ are calculated once on $G_0$ to the nearest POI of each category.
+
+The simulation executes a temporal loop for each experimental tier. At each hour $t \in [0, 335]$, the engine determines the passable road graph $G(t) = G_{k(t)}$ and active destinations $\mathcal{D}_{\text{active}}(t) = \{i \in \mathcal{D} \mid \sigma_i(t) \in \{\text{Operational}, \text{Depleting}\}\}$. The evaluation is optimized through the following computational strategies:
+\begin{itemize}
+    \item \textbf{High-Performance Multi-source Dijkstra}: Instead of performing $m$ individual queries, a single multi-source Dijkstra traversal is initiated simultaneously from all nodes in $\mathcal{D}_{\text{active}}(t)$ on the subgraph $G_{k(t)}$. This yields optimal distances to the nearest functional facility for all origins in a single $\mathcal{O}(|E| + |V|\log |V|)$ traversal. If an origin is disconnected by flooded segments, $c(s_j, d_j, t) = \infty$, yielding an accessibility ratio of zero.
+    \item \textbf{Memoization and Caching}: To handle the computational load of 336 hours across multiple tiers, the engine utilizes a memoization cache. Because accessibility is invariant if the flood stage $k$ and the set $\mathcal{D}_{\text{active}}$ remain constant, results are cached using $(k(t), \mathcal{D}_{\text{active}}(t))$ as a key, bypassing redundant graph searches during stationary intervals.
+    \item \textbf{Numerical Integration}: The resulting hourly trajectory $\text{RoA}(t)$ is integrated across the horizon using the composite trapezoidal rule to compute the final resilience metric $\text{RoA}_{\text{Int}}$.
+\end{itemize}

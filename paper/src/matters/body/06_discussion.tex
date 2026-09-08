@@ -16,7 +16,7 @@ The extension of the RoA index through infrastructure coupling and state-based m
 \subsection{The Impact of Utility Interdependencies}
 \label{subsec:the-impact-of-utility-interdependencies}
 
-A key finding from the multi-tier evaluation is the spatial decoupling of flood hazard and accessibility loss. In Level A, accessibility loss is localized to the immediate inundation area. However, in Levels B1 and C, POIs located on high ground can become ``functionally dead'' if their snapped utility infrastructure---often located in lower-lying, flood-prone street corridors---is compromised. This highlights the importance of the NCNN algorithm: traditional Euclidean mapping would likely underestimate these cascading risks by ignoring the topological constraints of utility networks.
+A key finding from the multi-tier evaluation is the spatial decoupling of flood hazard and accessibility loss. In Level A, accessibility loss is localized to the immediate inundation area. However, in Levels B1 and C, POIs located on high ground can become ``functionally dead'' if their snapped utility infrastructure---often located in lower-lying, flood-prone street corridors---is compromised. This highlights the importance of topological coupling: traditional Euclidean mapping would likely underestimate these cascading risks by ignoring the spatial constraints of utility networks which typically follow street corridors.
 
 \subsection{Resilience Buffers and Hysteresis}
 \label{subsec:resilience-buffers-and-hysteresis}
@@ -29,6 +29,6 @@ The FSM logic demonstrates that facility resilience is a function of both buffer
 While the proposed framework improves upon static models, several limitations remain:
 \begin{itemize}
     \item \textbf{Binary Utility States}: Power and water are modeled as either fully connected or fully lost, ignoring partial failures or pressure drops.
-    \item \textbf{Static NCNN Mapping}: The coupling between POIs and infrastructure is assumed to be fixed. In reality, utility networks may have redundant paths or the ability to reroute power.
+    \item \textbf{Static Infrastructure Mapping}: The coupling between POIs and infrastructure is assumed to be fixed. In reality, utility networks may have redundant paths or the ability to reroute power.
     \item \textbf{Origin-Destination Simplification}: Citizen samples are modeled as points without considering the dynamic behavior of the population during an evacuation.
 \end{itemize}
