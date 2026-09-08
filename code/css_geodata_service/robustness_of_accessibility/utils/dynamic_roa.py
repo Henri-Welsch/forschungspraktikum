@@ -557,10 +557,10 @@ def load_or_compute_multi_tier_bundle(
     if samples is None:
         nodes_gdf = ox.graph_to_gdfs(street_network, edges=False)
         samples = load_or_draw_sample(
-            cache_path=cache_dir / f"samples/samples_{place_name}_500.geojson",
+            cache_path=cache_dir / f"samples/samples_{place_name}_50m.geojson",
             polygon=boundary_geom,
             gdf_nodes_drive_service_graph=nodes_gdf,
-            number_total_samples=500,
+            sample_distance_in_meters=50,
             random_seed=42,
         )
 

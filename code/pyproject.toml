@@ -26,6 +26,7 @@ dependencies = [
     "pandas-stubs~=3.0.3",
     "pandas>=3.0.3",
     "networkx>=3.6.1",
+    "numpy>=2.4.6",
 ]
 
 # [project.scripts]

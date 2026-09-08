@@ -9,7 +9,7 @@ The following section presents the quantitative and spatial results of the multi
 \subsection{Scope and Methodological Baseline}
 \label{subsec:scope-and-baseline}
 
-A critical finding of our validation phase is that the municipal Level A baseline (Road Baseline) yields an integrated $RoA_{\text{Int}} = 88.31\,\%$ with a nadir of $65.50\,\%$.
+A critical finding of our validation phase is that the municipal Level A baseline (Road Baseline) yields an integrated $RoA_{\text{Int}} = 88.31\,\%$ with a systemic nadir ($RoA_{\text{Sys,min}}$) of $65.50\,\%$.
 While this differs from the $70.1\,\%$ benchmark reported by Kaub et al.~\cite{kaub2024}, it is a direct consequence of our more focused municipal scope.
 
 The original study included the broader Trier region, capturing $44$ fire stations and a road network of $26,853$ nodes, providing significant decentralized redundancy via suburban volunteer departments.
@@ -22,27 +22,27 @@ Furthermore, our flood model utilizes hydrodynamic stage data specific to the Tr
 \label{subsec:quantitative-results}
 
 The simulation results for the four complexity tiers are summarized in Table~\ref{tab:multi-tier-summary}.
-As hypothesized, the introduction of infrastructure coupling (Level C) results in a measurable decrease in systemic resilience compared to the transport-only model (Level A).
+As hypothesized, the introduction of infrastructure coupling and cascading effects (Level C) results in a measurable decrease in resilience compared to the road-focused model (Level A).
 
 \begin{table}[htbp]
     \centering
     \caption{Quantitative summary of multi-tier simulation results for Trier.}
     \label{tab:multi-tier-summary}
-    \begin{tabular}{l c c c c}
+    \begin{tabularx}{\textwidth}{ >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X }
         \hline
-        \textbf{Scenario Level} & \textbf{$RoA_{\text{Int}}$} & \textbf{$RoA_{\min}$ (Nadir)} & \textbf{Hospital Nadir} & \textbf{Fire Station Nadir} \\
+        \textbf{Level} & \textbf{$RoA_{\text{Int}}$} & \textbf{$RoA_{\text{Sys,min}}$} & \textbf{Hosp. Nadir} & \textbf{Fire Nadir} \\
         \hline
         Level A & $88.31\%$ & $65.50\%$ & $52.62\%$ & $78.38\%$ \\
         Level B1 & $87.49\%$ & $64.40\%$ & $52.62\%$ & $76.18\%$ \\
         Level B2 & $88.15\%$ & $65.50\%$ & $52.62\%$ & $78.38\%$ \\
         Level C & $87.49\%$ & $64.40\%$ & $52.62\%$ & $76.18\%$ \\
         \hline
-    \end{tabular}
+    \end{tabularx}
 \end{table}
 
+\noindent
 The temporal dynamics of systemic resilience are captured in Figure~\ref{fig:multi-tier-ts}.
-For visual clarity, the plot focuses on the contrast between the transport-only baseline (Level A) and the fully integrated infrastructure coupling (Level C); intermediate tiers B1 and B2 follow similar trajectories and are detailed numerically in Table~\ref{tab:multi-tier-summary}.
-The shaded region highlights the \textit{Functional Gap} ($\Delta RoA$), representing the resilience overestimation inherent in models that neglect utility dependencies.
+For visual clarity, the plot focuses on the contrast between the road-only baseline (Level A) and the fully integrated infrastructure coupling (Level C).
 
 \begin{figure}[htbp]
     \centering
@@ -53,7 +53,7 @@ The shaded region highlights the \textit{Functional Gap} ($\Delta RoA$), represe
 
 \subsubsection{H1: Functional Gap Analysis}
 \label{subsubsec:h1-analysis}
-Hypothesis H1 is confirmed by a $1.10\,\%$ gap in the peak nadir between Level A ($65.50\,\%$) and Level C ($64.40\,\%$). While the difference in integrated resilience $RoA_{\text{Int}}$ appears small ($0.83\,\%$), this is due to the 336-hour window; the disruption is concentrated during the critical peak and recovery phases.
+Hypothesis H1 is confirmed by a $1.10\,\%$ gap in the systemic peak nadir ($RoA_{\text{Sys,min}}$) between Level A ($65.50\,\%$) and Level C ($64.40\,\%$). While the difference in integrated resilience $RoA_{\text{Int}}$ appears small ($0.82\,\%$), this is due to the 336-hour window; the disruption is concentrated during the critical peak and recovery phases.
 In these windows, the functional loss of decentralized fire stations due to utility exhaustion significantly hampers local response capacity.
 
 \subsubsection{H2: Temporal Hysteresis and Recovery Lag}
@@ -70,12 +70,13 @@ The most significant accessibility losses occur in the districts of Pfalzel and 
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\linewidth]{resources/spatial_gap_map}
-    \caption{Heatmap of the functional gap $\Delta RoA_j$ across Trier. High-intensity areas indicate where utility failures compounded transport disruptions.}
+    \includegraphics[width=0.95\linewidth]{resources/combined_spatial_maps}
+    \caption{Heatmap of the functional gap $\Delta RoA_j$ across Trier districts. High-intensity areas indicate where utility failures compounded transport disruptions.}
     \label{fig:spatial-gap}
 \end{figure}
 
-Table~\ref{tab:district-breakdown} provides a selection of district-level nadirs.
+Table~\ref{tab:district-breakdown} provides a selection of district-level nadirs, highlighting the areas where the functional gap is most pronounced.
+A comprehensive spatial analysis (Figure~\ref{fig:spatial-gap}) identifies Pfalzel and Ehrang as the most vulnerable districts, with mean overestimation gaps exceeding $3\,\%$ due to the compounding effect of road inundation and local substation failures.
 As shown in Figure~\ref{fig:multi-tier-ts}, the centralization of hospitals leads to a sharp, uniform decline in accessibility for peripheral districts.
 In contrast, the distributed nature of fire stations maintains a higher baseline resilience, though they remain susceptible to localized utility outages (e.g., the fire station nadir drop from $78.38\,\%$ to $76.18\,\%$).
 
