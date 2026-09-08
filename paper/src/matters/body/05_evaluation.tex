@@ -9,15 +9,20 @@ The following section presents the quantitative and spatial results of the multi
 \subsection{Scope and Methodological Baseline}
 \label{subsec:scope-and-baseline}
 
-A critical finding of our validation phase is that the municipal Level A baseline (Road Baseline) yields an integrated $RoA_{\text{Int}} = 88.31\,\%$ with a nadir of $65.50\,\%$. While this differs from the $70.1\,\%$ benchmark reported by Kaub et al.~\cite{kaub2024}, it is a direct consequence of our more focused municipal scope. 
+A critical finding of our validation phase is that the municipal Level A baseline (Road Baseline) yields an integrated $RoA_{\text{Int}} = 88.31\,\%$ with a nadir of $65.50\,\%$.
+While this differs from the $70.1\,\%$ benchmark reported by Kaub et al.~\cite{kaub2024}, it is a direct consequence of our more focused municipal scope.
 
-The original study included the broader Trier region, capturing $44$ fire stations and a road network of $26,853$ nodes, providing significant decentralized redundancy via suburban volunteer departments. In contrast, our study focuses strictly on the municipal boundary of Trier ($\sim 117\,\text{km}^2$), utilizing $12$ fire stations and $5,817$ nodes. This reduced redundancy in the municipal core leads to a more conservative and localized assessment of resilience. Furthermore, our flood model utilizes hydrodynamic stage data specific to the Trier gauge, ensuring higher fidelity for municipal planning despite the divergence from the regional benchmark.
+The original study included the broader Trier region, capturing $44$ fire stations and a road network of $26,853$ nodes, providing significant decentralized redundancy via suburban volunteer departments.
+In contrast, our study focuses strictly on the municipal boundary of Trier ($\sim 117\,\text{km}^2$), utilizing $12$ fire stations and $5,817$ nodes.
+This reduced redundancy in the municipal core leads to a more conservative and localized assessment of resilience.
+Furthermore, our flood model utilizes hydrodynamic stage data specific to the Trier gauge, ensuring higher fidelity for municipal planning despite the divergence from the regional benchmark.
 
 
 \subsection{Quantitative Results and Cascading Impacts}
 \label{subsec:quantitative-results}
 
-The simulation results for the four complexity tiers are summarized in Table~\ref{tab:multi-tier-summary}. As hypothesized, the introduction of infrastructure coupling (Level C) results in a measurable decrease in systemic resilience compared to the transport-only model (Level A).
+The simulation results for the four complexity tiers are summarized in Table~\ref{tab:multi-tier-summary}.
+As hypothesized, the introduction of infrastructure coupling (Level C) results in a measurable decrease in systemic resilience compared to the transport-only model (Level A).
 
 \begin{table}[htbp]
     \centering
@@ -35,29 +40,33 @@ The simulation results for the four complexity tiers are summarized in Table~\re
     \end{tabular}
 \end{table}
 
-Figure~\ref{fig:multi-tier-ts} illustrates the temporal evolution of the RoA index across the hydrodynamic cycle. The shaded area represents the \textit{Functional Gap}—the overestimation of resilience by classical models that ignore utility dependencies.
+The temporal dynamics of systemic resilience are captured in Figure~\ref{fig:multi-tier-ts}.
+For visual clarity, the plot focuses on the contrast between the transport-only baseline (Level A) and the fully integrated infrastructure coupling (Level C); intermediate tiers B1 and B2 follow similar trajectories and are detailed numerically in Table~\ref{tab:multi-tier-summary}.
+The shaded region highlights the \textit{Functional Gap} ($\Delta RoA$), representing the resilience overestimation inherent in models that neglect utility dependencies.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{resources/accessibility_comparison}
-    \caption{Multi-tier time-series comparison showing the $RoA(t)$ trajectory. The functional gap $\Delta RoA(t)$ emerges during the flood peak and recession phases. Service-specic RoA breakdown. Distributed re stations show higher
-    resilience but are susceptible to localized utility outages, whereas centralized
-    hospitals exhibit a sharp, uniform drop}
+    \caption{Temporal evolution of $RoA$ for Level A and Level C. The shaded area indicates the functional gap $\Delta RoA(t)$ emerging during the flood peak and recession phases.}
     \label{fig:multi-tier-ts}
 \end{figure}
 
 \subsubsection{H1: Functional Gap Analysis}
 \label{subsubsec:h1-analysis}
-Hypothesis H1 is confirmed by a $1.10\,\%$ gap in the peak nadir between Level A ($65.50\,\%$) and Level C ($64.40\,\%$). While the difference in integrated resilience $RoA_{\text{Int}}$ appears small ($0.83\,\%$), this is due to the 336-hour window; the disruption is concentrated during the critical peak and recovery phases. In these windows, the functional loss of decentralized fire stations due to utility exhaustion significantly hampers local response capacity.
+Hypothesis H1 is confirmed by a $1.10\,\%$ gap in the peak nadir between Level A ($65.50\,\%$) and Level C ($64.40\,\%$). While the difference in integrated resilience $RoA_{\text{Int}}$ appears small ($0.83\,\%$), this is due to the 336-hour window; the disruption is concentrated during the critical peak and recovery phases.
+In these windows, the functional loss of decentralized fire stations due to utility exhaustion significantly hampers local response capacity.
 
 \subsubsection{H2: Temporal Hysteresis and Recovery Lag}
 \label{subsubsec:h2-analysis}
-Hypothesis H2 is confirmed by the observed systemic recovery lag. While Level A accessibility restores fully at hour 288 (end of recession), Level C remains compromised until hour 336. This 48-hour recovery lag is driven by the internal reboot delays and hysteresis thresholds implemented in the FSM, reflecting the realistic challenges of site decontamination and system restarts post-inundation.
+Hypothesis H2 is confirmed by the observed systemic recovery lag.
+While Level A accessibility restores fully at hour 288 (end of recession), Level C remains compromised until hour 336.
+This 48-hour recovery lag is driven by the internal reboot delays and hysteresis thresholds implemented in the FSM, reflecting the realistic challenges of site decontamination and system restarts post-inundation.
 
 \subsection{Spatial Breakdown and District-Level Vulnerability}
 \label{subsec:spatial-breakdown}
 
-The spatial distribution of the functional gap $\Delta RoA_j$ at the flood peak is visualized in Figure~\ref{fig:spatial-gap}. The most significant accessibility losses occur in the districts of Pfalzel and Ehrang, which suffer from both direct road inundation and the failure of local service providers due to utility cascades.
+The spatial distribution of the functional gap $\Delta RoA_j$ at the flood peak is visualized in Figure~\ref{fig:spatial-gap}.
+The most significant accessibility losses occur in the districts of Pfalzel and Ehrang, which suffer from both direct road inundation and the failure of local service providers due to utility cascades.
 
 \begin{figure}[htbp]
     \centering
@@ -66,14 +75,9 @@ The spatial distribution of the functional gap $\Delta RoA_j$ at the flood peak 
     \label{fig:spatial-gap}
 \end{figure}
 
-Table~\ref{tab:district-breakdown} provides a selection of district-level nadirs. The centralization of hospitals leads to a sharp decline in accessibility for peripheral districts, whereas the distributed nature of fire stations maintains a higher baseline, albeit one more vulnerable to local power outages (as seen in the fire station nadir drop from $78.38\,\%$ to $76.18\,\%$). This service-specific breakdown is further detailed in Figure~\ref{fig:service-breakdown}.
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=\linewidth]{resources/accessibility_comparison}
-    \caption{Service-specific RoA breakdown. Distributed fire stations show higher resilience but are susceptible to localized utility outages, whereas centralized hospitals exhibit a sharp, uniform drop.}
-    \label{fig:service-breakdown}
-\end{figure}
+Table~\ref{tab:district-breakdown} provides a selection of district-level nadirs.
+As shown in Figure~\ref{fig:multi-tier-ts}, the centralization of hospitals leads to a sharp, uniform decline in accessibility for peripheral districts.
+In contrast, the distributed nature of fire stations maintains a higher baseline resilience, though they remain susceptible to localized utility outages (e.g., the fire station nadir drop from $78.38\,\%$ to $76.18\,\%$).
 
 \begin{table}[htbp]
     \centering
@@ -94,4 +98,6 @@ Table~\ref{tab:district-breakdown} provides a selection of district-level nadirs
 \subsection{Conclusion of Evaluation}
 \label{subsec:evaluation-conclusion}
 
-The results demonstrate that evaluating critical infrastructure through a single-infrastructure lens significantly underestimates the systemic risk. The confirmation of H1 and H2 validates the necessity of compound multi-infrastructure modeling for urban disaster resilience planning. In particular, the 48-hour recovery lag identified in Level C highlights a critical policy window for emergency logistics during the post-flood phase.
+The results demonstrate that evaluating critical infrastructure through a single-infrastructure lens significantly underestimates the systemic risk.
+The confirmation of H1 and H2 validates the necessity of compound multi-infrastructure modeling for urban disaster resilience planning.
+In particular, the 48-hour recovery lag identified in Level C highlights a critical policy window for emergency logistics during the post-flood phase.
