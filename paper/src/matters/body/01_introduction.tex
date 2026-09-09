@@ -22,19 +22,10 @@
 %-kleine allgemeine Einführung
 %-Motivation
 
-Die Funktionsfähigkeit moderner Gesellschaften hängt maßgeblich von kritischen Infrastrukturen wie der Wasser-, Gesundheits- und Energieversorgung sowie dem Transport von Lebensmitteln und Gütern ab~\cite{lickert2024,chiaradonna2007}. Zwischen kritischen Infrastrukturen können funktionale Abhängigkeiten bestehen~\cite{chiaradonna2007}.
-
 The functioning of modern societies depends largely on critical infrastructure (CI), such as water, health care, and energy supplies as well as the transportation of food and goods~\cite{lickert2024,chiaradonna2007}. Functional dependencies may exist between CI systems~\cite{chiaradonna2007}.
 
 %Absatz 2
 %-Problemstellung (Wirtschaftsinformatisches Problem)
-
-Wegen dieser Abhängigkeiten können sich Störungen auf andere Infrastrukturen ausbreiten und kaskadierende Ausfälle hervorrufen~\cite{laprie2007}. Im Extremfall können derartige Kaskaden zu umfassenden Ausfällen von interdependenten Infrastruktursystemen führen~\cite{buldyrev2010}. Daher ist für die Auswertung verschiedener Krisenszenarien nicht nur entscheidend welche Infrastrukturen akut betroffen sind, sondern auch, wie sich daraus resultierende Ausfälle im zeitlichen Verlauf auf abhängige Infrastrukturen ausbreiten können~\cite{lickert2024}.
-
-
-Für die Versorgung der Bevölkerung ist bei Infrastrukturausfällen entscheidend, ob kritische \textbf{Points of Interest (POIs)}, beispielsweise Krankenhäuser, sowohl funktionsfähig als auch über das Straßennetz erreichbar bleiben~\cite{kaub2024,lickert2024}. Kaub et al. haben mit dem \textbf{Robustness of Accessibility} (RoA) einen Ansatz entwickelt, bei dem man die Veränderung der Erreichbarkeit einzelner POIs von intakten mit gestörten Straßennetzen vergleicht~\cite{kaub2024}.
-
-
 
 Due to these interdependencies, disruptions can spread to other infrastructure systems and can cause cascading failures~\cite{laprie2007}. In extreme cases, such cascades can lead to widespread failures of interdependent infrastructure systems~\cite{buldyrev2010}. Therefore, when evaluating various crisis scenarios, it is crucial not only to identify which infrastructures are immediately affected, but also to understand how resulting failures can spread to dependent infrastructures over time~\cite{lickert2024}.
 
@@ -45,8 +36,6 @@ If it comes to infrastructure failures, the ability to provide for the populatio
 %Absatz 3
 %-Forschungslücke
 
-Die betrachteten zentralen Ansätze untersuchen die verkehrsbezogene Erreichbarkeit in gestörten Straßennetzen und die zeitliche Ausbreitung kaskadierender Ausfälle in interdependenten Versorgungsinfrastrukturen getrennt voneinander. Während Kaub et al. die Veränderung der Resilienz bewertet nach Störungen im Straßennetz~\cite{kaub2024}, modelliert Lickert et al. die Ausbreitung kaskadierender Ausfälle und damit einhergeheneden funktionalen Ausfällen interdependenten Infrastrukturen~\cite{lickert2024}. Es bleibt jedoch offen, wie die verkehrsbezogene Erreichbarkeit und die durch kaskadierenden Ausfällen beinflusste Funktionsfähigkeit kritischer POIs im zeitlichem Verlauf gemeinsam sich in einer Krise auswirken.
-
 The key approaches considered here examine traffic-related accessibility in disrupted road networks and the temporal propagation of cascading failures in interdependent utility infrastructures separately. While Kaub et al. assess changes in resilience following disruptions in the road network~\cite{kaub2024}, Lickerrt et al. model the propagation of cascading failures and the associated functional failures in interdependent infrastructures~\cite{lickert2024}. Howeever, it remains unclear how traffic-related accessibility and the functionality of critical POIs, which influenced by cascading failures, jointly impact the sitaution over time during a crisis.
 
 
@@ -56,20 +45,10 @@ The key approaches considered here examine traffic-related accessibility in disr
 %Absatz 4
 %-Forschungsfrage
 
-Aus dieser Forschungslücke ergibt sich die Forschungsfrage, \textit{wie Kaskadeneffekte infolge von Ausfällen in Verkehrs- und Versorgungsinfrastrukturen die zeitabhängige Erreichbarkeit (RoA) kritischer Versorgungsinfrastruktur (POIs) beeinflussen?}
-
-
 %BESPRECHUNG BEZÜGLICH DES ZIELS WICHTIG
 %Das Ziel dieser Arbeit ist es, den straßenbasierten RoA-Ansatz um eine
 %zeitabhängige Modellierung der funktionalen Zustände kritischer Points of
 %Interest (POIs) bei kaskadierenden Versorgungsausfällen zu erweitern.
-
-
-Im Rahmen dieses Papiers werden folgende Hypothesen und Herausforderungen untersucht:
-\begin{itemize}
-    \item \textbf{H1:} Die Integration von Stromausfall-Kaskaden führt zu einer geringeren Resilienz, als eine rein straßenbasierte RoA-Analyse vermuten lässt.
-    \item \textbf{H2:} Durch die Modellierung von \textit{Lifetimes} lassen sich kritische Zeitfenster identifizieren, in denen ein POI trotz blockierter Wege funktional bleibt oder trotz freier Wege ausfällt.
-\end{itemize}
 
 %Kommentar in der Hypothese H2 eventuell das Wort Lifetimes mit dem Wort Überbrückungszeit ändern????
 
@@ -86,10 +65,8 @@ This paper examines the following hypotheses and challenges:
 %Absatz 5
 %-Ziel und wissenschaftlicher Beitrag (DAS EVENTUELL VOR DIE HYPOTHESE EINBAUEN WICHTIG BESPRECHUNG)
 
-Das Ziel dieses Papiers ist es, die straßenbasierte Resilienzbewertung des RoA methodisch und technisch mit der zeitabhängigen Modellierung kaskadierender Infrastrukturausfälle zu verknüpfen. Zur Quantifizierung der Resilienz urbaner Räume wird der \textit{RoA-Index} nach Kaub et al.~\cite{kaub2024} entwickelt und erweitert mit einer entscheidend zeitabhängige Betriebsfähigkeit kritischer POIs erweitert. Hierzu werden Ausfälle der Elektrizitäts- und Wasserversorgung sowie die jeweiligen Überbrückungszeiten in die Bewertung der RoA berücksichtigt. Die Modellierung der Überbrückungszeit orientiert sich nach dem Konzept der Lifetime von Lickert et al.~\cite{lickert2024}. \textit{Lifetimes} bezeichnet hier die Zeitspanne, während einer kritischen Infrastruktur nach dem Verlust einer Versorgungsleistung, noch funktionsfähig bleibt, zum Beispiel von Notstrom ~\cite{lickert2024}. Nach Ablauf der Lifetimes ist die betroffene Infrastrukutur als funktionsunfähig einzustufen.
-
-
-The goal of this paper is to methodologically and technically link the road-based resilience assessment of the RoA with a time-dependent modeling of cascading infrastructures failures. To quantify the resilience of urban areas, the \textit{RoA Index} according to Kaub et al.~\cite{kaub2024} is developed and expanded to include a crucial time-dependent operational capability of critical POIs. To this end, failures in the electricity and water supply, as well as the respective bridging times, are taken into account in the RoA assessement. The modeling of the bridging time is based on the concept of \textit{lifetime} proposed by Lickert et al.~\cite{lickert2024}. Here, \textit{lifetimes} refer to the period during which a CI remains functional after the loss of a suppy service, such as emergency power~\cite{lickert2024}. Once the lifetimes have elapsed, the affected infrastructure is classified as inoperable.
+The goal of this paper is to methodologically and technically link the road-based resilience assessment of the RoA with a time-dependent modeling of cascading infrastructures failures.
+To quantify the resilience of urban areas, the \textit{RoA Index} according to Kaub et al.~\cite{kaub2024} is developed and expanded to include a crucial time-dependent operational capability of critical POIs. To this end, failures in the electricity and water supply, as well as the respective bridging times, are taken into account in the RoA assessement. The modeling of the bridging time is based on the concept of \textit{lifetime} proposed by Lickert et al.~\cite{lickert2024}. Here, \textit{lifetimes} refer to the period during which a CI remains functional after the loss of a suppy service, such as emergency power~\cite{lickert2024}. Once the lifetimes have elapsed, the affected infrastructure is classified as inoperable.
 
 
 %Absatz 6
