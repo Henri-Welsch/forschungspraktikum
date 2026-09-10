@@ -17,21 +17,25 @@
 % - Topological Coupling
 % - Scenario Progression and Simulation Run
 
-To quantify the impact of cascading infrastructure failures on urban resilience, we extend the static Reliability of Accessibility (RoA) index into a dynamic, time-dependent framework. This methodology incorporates the temporal progression of flood events, infrastructure coupling via road-network constraints, and the internal resilience of facilities managed through a finite state machine.
+To quantify the impact of cascading infrastructure failures on urban resilience, we extend the static RoA index into a dynamic framework.
+This framework incorporates temporal flood progression, road-network coupling, utilities like power and water, and facility resilience managed via a finite state machine (FSM).
 
 \subsection{Mathematical Framework of RoA(t)}
 \label{subsec:mathematical-framework-of-roa-t}
 
 \subsubsection{Time Deterministic RoA:}
-While the core mathematical structure of the standard RoA index is preserved, accessibility is dynamically modified downstream by facility functionality, which directly governs destination reachability and the resulting RoA calculation. We operationalize this metric into a time-dependent index $\text{RoA}(\mathcal{C}, t)$ evaluated at each simulation hour $t$ within a disaster horizon $T$:
+While preserving the standard RoA structure (Equation~\ref{eq:old_roa}), downstream accessibility is dynamically modified by facility functionality, directly governing destination reachability.
+We operationalize this as a time-dependent index, $\text{RoA}(\mathcal{C}, t)$, evaluated hourly over the simulation horizon $T$.
+Consequently, system states are parameterized continuously over time rather than denoted by static prime notation ($c$ vs. $c'$), where $t_0$ is the baseline and $t$ is any step in the simulation.
+The new RoA formula looks as follows:
 
 \begin{equation}
-    \text{RoA}(\mathcal{C}, t) = \sum_{j=1}^{m} \left( a_{\mathcal{C},j} \cdot \frac{c(s_{j},d_{j}, t_0)}{c(s_j, d_j, t)} \right)
+    \text{RoA}(\mathcal{C}, t) = \sum_{j=1}^{m} \left( a_{\mathcal{C},j} \cdot \frac{c(s_{j},d_{j}, t_0)}{c(s_j, d_j, t)} \right)\label{eq:new_roa}
 \end{equation}
 
 \noindent
 \begin{tabularx}{\textwidth}{@{}l X@{}}
-    $\text{RoA}(\mathcal{C}, t)$ & Functional area-wide accessibility index at time $t$. \\
+    $\text{RoA}(\mathcal{C}, t)$ & Functional area-wide accessibility index at time $t$ in the simulation. \\
     $\mathcal{C}$ / $m$ & Set ($\mathcal{C}$) and count ($m$) of origin-destination POI connections. \\
     $a_{\mathcal{C},j}$ & Weighting factor of routs j for POI $\mathcal{C}$ subject to $\sum_{j=1}^{m} a_{\mathcal{C},j} = 1$. \\
     $c(s_j, d_j, t_0)$ & Travel cost from origin $s_j$ to destination $d_j$ at initial time $t_0$. \\
@@ -42,14 +46,14 @@ While the core mathematical structure of the standard RoA index is preserved, ac
 Because $\text{RoA}(\mathcal{C}, t)$ is evaluated continuously over the course of the simulation rather than as a static snapshot, total resilience over the crisis period is captured by the time-integrated RoA ($\text{RoA}_{\text{Int}}$):
 
 \begin{equation}
-    \text{RoA}_{\text{Int}}(\mathcal{C}) = \frac{1}{t_{\text{end}} - t_{\text{start}}} \int_{t_{\text{start}}}^{t_{\text{end}}} \text{RoA}(\mathcal{C}, t) \, dt
+    \text{RoA}_{\text{Int}}(\mathcal{C}) = \frac{1}{t_N - t_0} \int_{t_0}^{t_N} \text{RoA}(\mathcal{C}, t) \, dt\label{eq:int_roa}
 \end{equation}
 
 \noindent
 \begin{tabularx}{\textwidth}{@{}l X@{}}
     $\text{RoA}_{\text{Int}}(\mathcal{C})$ & Cumulative time-integrated resilience index over the disaster horizon. \\
     $\mathcal{C}$ & Set of evaluated origin-destination POI connections. \\
-    $[t_{\text{start}}, t_{\text{end}}]$ & Analysis period from the start ($t_{\text{start}}$) to the end ($t_{\text{end}}$) of the disaster. \\
+    $[t_0, t_N]$ & Analysis period from the start ($t_0$) to the end ($t_N$) of the simulation. \\
     $\frac{1}{t_{\text{end}} - t_{\text{start}}}$ & Normalizing the area under the resilience curve to $[0, 1]$. \\
     $\text{RoA}(\mathcal{C}, t)$ & Time-dependent accessibility index of connections $\mathcal{C}$ at time $t$. \\
     $dt$ & Differential element for integration over time $t$.
@@ -60,11 +64,11 @@ Because $\text{RoA}(\mathcal{C}, t)$ is evaluated continuously over the course o
 
 While physical road availability is a necessary condition for accessibility, it is insufficient to guarantee operational functionality.
 Facilities such as hospitals and fire stations depend heavily on external utilities (power and water).
-When utility grid connections fail, internal backup systems allow temporary operation until reserves deplete.
-These states and transitions need to be governed by a Finite State Machine (FSM).
+When utility grid connections fail, internal backup systems allow temporary operation.
+These states and transitions need to be governed by a Finite State Machine (FSM), which bridges also the gap between Kaub et al.\ and Lickert et al.
 
 \subsubsection{FSM States:}
-To capture this dynamic functionality, we model each POI $i$ using a four-state Finite State Machine (FSM). At any time step $t$, the state of a facility is defined as $\sigma_i(t)$, which determines an operational binary indicator $f_i(t) \in \{0, 1\}$ indicating whether a facility can actively accept traffic and deliver service:
+To capture this dynamic functionality, we model each POI $i$ using a four-state FSM where at any time step $t$, the state of a facility is defined as $\sigma_i(t)$, which determines an operational binary indicator $f_i(t) \in \{0, 1\}$ indicating whether a facility can actively accept traffic and deliver service:
 
 \noindent
 \begin{minipage}{0.40\textwidth}
@@ -72,7 +76,7 @@ To capture this dynamic functionality, we model each POI $i$ using a four-state 
         \sigma_i(t) \in \left\{ \begin{aligned}
                                     &\text{Oper}, \text{Depl.}, \\
                                     &\text{Dead}, \text{Rebo.}
-        \end{aligned} \right\}
+        \end{aligned} \right\}\label{eq:states}
     \end{equation}
 \end{minipage}%
 \begin{minipage}{0.60\textwidth}
@@ -80,7 +84,7 @@ To capture this dynamic functionality, we model each POI $i$ using a four-state 
         f_i(t) = \begin{cases}
                      1 & \text{if } \sigma_i(t) \in \{\text{Oper.}, \text{Depl.}\} \\
                      0 & \text{if } \sigma_i(t) \in \{\text{Dead}, \text{Rebo.}\}
-        \end{cases}
+        \end{cases}\label{eq:binary_indicator}
     \end{equation}
 \end{minipage}
 
@@ -88,59 +92,67 @@ To capture this dynamic functionality, we model each POI $i$ using a four-state 
 
 \noindent
 \begin{tabularx}{\textwidth}{@{}l X@{}}
-    Operational & All external utility connections are active and reserve buffers recharge; the facility is fully functional ($f_i(t) = 1$). \\
-    Depleting & At least one utility connection has failed while internal reserves bridge the outage; the facility remains functional ($f_i(t) = 1$). \\
-    Dead & At least one reserve buffer is fully exhausted or the facility site is directly flooded; the facility is non-functional ($f_i(t) = 0$). \\
-    Rebooting & All utility supply are restored or buffer reserves are above thresholds; the facility is non-functional ($f_i(t) = 0$).
+    Operational & All external utility connections are active and reserve buffers recharge.
+    The facility is fully functional ($f_i(t) = 1$). \\
+    Depleting & At least one utility connection has failed while internal reserves bridge the outage.
+    The facility remains functional ($f_i(t) = 1$). \\
+    Dead & At least one reserve buffer is fully exhausted or the facility site is directly flooded.
+    The facility is non-functional ($f_i(t) = 0$). \\
+    Rebooting & All utility supply are restored or buffer reserves are above thresholds.
+    The facility is non-functional ($f_i(t) = 0$).
 \end{tabularx}
 
-\subsubsection{FSM State Transitions:}
-State transitions are governed by resource availability, continuous flood exposure, and hysteresis rules:
-\begin{itemize}
-    \item \textbf{Operational Transitions ($\sigma_i(t) = \text{Operational}$):}
-    \begin{itemize}
-        \item \textbf{Operational $\to$ Depleting:} Triggered when any grid connection fails ($\exists r \in \{\text{power}, \text{water}\} : u_{i,r}(t) = 0$), provided backup reserves exist ($b_{i,r}(t) > 0$).
-        \item \textbf{Operational $\to$ Dead:} Direct flood override. Triggered immediately if the facility site is submerged ($\mathbf{p}_i \in \text{FloodPolygon}(t)$).
-    \end{itemize}
+\subsubsection{FSM State Transitions and Hysteresis:}
+FSM state transitions are governed by resource availability, continuous flood exposure, and hysteresis rules, as summarized in Table~\ref{tab:fsm-state-transitions}.
+The parameter $\theta = 0.15$ enforces hysteresis by defining the minimum relative buffer capacity required for a facility to initiate rebooting without full grid restoration, preventing rapid failure-recovery cycling (chattering).
+Within each state, transition guards are evaluated sequentially with early-exit semantics: the first condition that evaluates to true triggers the state update, bypassing subsequent guards.
 
-    \item \textbf{Depleting Transitions ($\sigma_i(t) = \text{Depleting}$):}
-    \begin{itemize}
-        \item \textbf{Depleting $\to$ Operational:} Triggered if full utility connectivity is restored ($\forall r : u_{i,r}(t) = 1$) before any buffer is exhausted ($\forall r : b_{i,r}(t) > 0$).
-        \item \textbf{Depleting $\to$ Dead:} Triggered if at least one resource buffer drops to zero ($\exists r : b_{i,r}(t) = 0$) OR if the site is submerged ($\mathbf{p}_i \in \text{FloodPolygon}(t)$).
-    \end{itemize}
 
-    \item \textbf{Dead Transitions ($\sigma_i(t) = \text{Dead}$):}
-    \begin{itemize}
-        \item \textbf{Dead $\to$ Rebooting:} Triggered when unflooded ($\mathbf{p}_i \notin \text{FloodPolygon}(t)$) and restart viability is met for both $r \in \{\text{power}, \text{water}\}$: $u_{i,r}(t) = 1 \lor b_{i,r}(t) > \theta \cdot B_r$ (where $\theta = 0.15$).
-    \end{itemize}
-    \item \textbf{Rebooting Transitions ($\sigma_i(t) = \text{Rebooting}$):}
-    \begin{itemize}
-        \item \textbf{Rebooting $\to$ Operational:} When delay completes ($t_{\text{reboot}} \ge T_{\text{delay}}$) and all grid connections are online ($\forall r \in \{\text{power}, \text{water}\}, \, u_{i,r}(t) = 1$).
-        \item \textbf{Rebooting $\to$ Depleting:} When delay completes ($t_{\text{reboot}} \ge T_{\text{delay}}$) while a partial grid outage persists ($\exists r \in \{\text{power}, \text{water}\} : u_{i,r}(t) = 0$).
-        \item \textbf{Rebooting $\to$ Dead:} Triggered if submerged ($\mathbf{p}_i \in \text{FloodPolygon}(t)$) OR if restart viability is lost for any resource line ($\exists r : u_{i,r}(t) = 0 \land b_{i,r}(t) \le \theta \cdot B_r$, where $\theta = 0.15$).
-    \end{itemize}
-\end{itemize}
+\begin{table}[htbp]
+    \centering
+    \caption{State transitions and guard conditions governing facility FSM updates (evaluated sequentially with early exit).}
+    \label{tab:fsm-state-transitions}
+    \renewcommand{\arraystretch}{1.30} % Expands vertical row spacing
+    \begin{tabularx}{\textwidth}{l l X}
+        \hline
+        \textbf{Current State} & \textbf{Next State} & \textbf{Transition Guard Condition} \\
+        \hline
+        Operational & Dead        & $\mathbf{p}_i \in \text{FloodPolygon}(t)$ \\
+        & Depleting   & $\exists r \in \{\text{power}, \text{water}\} : u_{i,r}(t) = 0$ \\
+        \hline
+        Depleting   & Dead        & $\mathbf{p}_i \in \text{FloodPolygon}(t)$ \\
+        & Dead        & $\exists r \in \{\text{power}, \text{water}\} : u_{i,r}(t) = 0 \land b_{i,r}(t) = 0$ \\
+        & Operational & $\forall r \in \{\text{power}, \text{water}\} : u_{i,r}(t) = 1$ \\
+        \hline
+        Dead        & Rebooting   & $\mathbf{p}_i \notin \text{FloodPolygon}(t) \land (\forall r \in \{\text{power}, \text{water}\} : u_{i,r}(t) = 1 \lor b_{i,r}(t) > \theta \cdot B_r)$ \\
+        \hline
+        Rebooting   & Dead        & $\mathbf{p}_i \in \text{FloodPolygon}(t)$ \\
+        & Dead        & $\exists r \in \{\text{power}, \text{water}\} : u_{i,r}(t) = 0 \land b_{i,r}(t) \le \theta \cdot B_r$ \\
+        & Operational & $t_{\text{reboot}} \ge T_{\text{repair}} \land (\forall r \in \{\text{power}, \text{water}\} : u_{i,r}(t) = 1)$ \\
+        & Depleting   & $t_{\text{reboot}} \ge T_{\text{repair}}$ \\
+        \hline
+    \end{tabularx}
+\end{table}
 
-\subsubsection{FSM Buffer Dynamics and Hysteresis:}
-Each POI maintains independent reserve buffers $b_{i,r}(t)$ for each resource $r \in \{\text{power}, \text{water}\}$ with maximum capacity $B_r$. During grid outages ($u_{i,r}(t) = 0$), reserves deplete at rate $\lambda_r$. When grid connectivity is restored ($u_{i,r}(t) = 1$), reserves recharge at rate $\mu_r$:
+\subsubsection{FSM Buffer Dynamics:}
+Each POI maintains independent reserve buffers $b_{i,r}(t)$ for each resource $r \in \{\text{power}, \text{water}\}$ with maximum capacity $B_r$.
+During grid outages ($u_{i,r}(t) = 0$), reserves deplete at the rate $\lambda_r$.
+When grid connectivity is restored ($u_{i,r}(t) = 1$), reserves recharge at the rate $\mu_r$:
 
 \begin{equation}
-    b_{i,r}(t + \Delta t) = \begin{cases}
-
-                                \max\left(0, \, b_{i,r}(t) - \lambda_r \cdot \Delta t\right) & \text{if } u_{i,r}(t) = 0 \land f_i(t) = 1 \\
-                                \min\left(B_r, \, b_{i,r}(t) + \mu_r \cdot \Delta t\right) & \text{if } u_{i,r}(t) = 1 \land f_i(t) = 1
-    \end{cases}
+    b_{i,r}(t + 1) = \begin{cases}
+                         \max\left(0, \, b_{i,r}(t) - \lambda_r\right) & \text{if } u_{i,r}(t) = 0 \land f_i(t) = 1 \\
+                         \min\left(B_r, \, b_{i,r}(t) + \mu_r\right) & \text{if } u_{i,r}(t) = 1 \land f_i(t) = 1
+    \end{cases}\label{eq:loss_and_gain}
 \end{equation}
 
 \noindent
 \begin{tabularx}{\textwidth}{@{}l X@{}}
-    $b_{i,r}(t), \, B_r$ & Current reserve level and maximum capacity for resource $r \in \{\text{power}, \text{water}\}$ at POI $i$. \\
-    $\lambda_r, \, \mu_r$ & Depletion and recharge rates per unit time. \\
-    $\Delta t$ & Simulation timestep duration. \\
-    $u_{i,r}(t), \, f_i(t)$ & Binary grid connection status and site viability indicator ($\in \{0, 1\}$). \\
-    $\max, \min$ & Clamping bounds enforcing physical reserve limits $[0, B_r]$.
+$b_{i,r}(t), \, B_r$ & Reserve level and max capacity for resource $r$ and PoI $i$ at time $t$. \\
+$\lambda_r, \, \mu_r$ & Depletion and recharge rates per unit time for ressource $r$. \\
+$u_{i,r}(t)$ & Binary grid connection status for PoI $i$ and resource $r$ at time $t$. \\
+$\max, \min$ & Clamping bounds enforcing physical reserve limits $[0, B_r]$.
 \end{tabularx}
-
 
 \subsubsection{Integrated FSM Workflow:} The overall interaction between utility connectivity, reserve buffer dynamics, direct flood overrides, and reboot hysteresis is synthesized in the finite state machine illustrated in Figure~\ref{fig:fsm_state_machine}.
 
@@ -154,30 +166,35 @@ Each POI maintains independent reserve buffers $b_{i,r}(t)$ for each resource $r
 \subsection{Infrastructure Coupling via NCNN}
 \label{subsec:infrastructure-coupling-via-ncnn}
 
-Critical utility networks (power and water) physically follow street corridors underground.
+
+Critical utility networks (power and water) physically follow street corridors underground, despite the individual supply assets and points of interest (POIs) often being located off the road network itself, as highlighted by Okabe et al.\ \cite{okabe2012}
 To capture topological barriers without assuming unconstrained Euclidean connectivity, utility dependencies are established using Network-Constrained Nearest-Neighbor (NCNN) mapping over an edge-weighted undirected street graph $G = (V, E)$.
+This framework accurately models underlying conduit pathways, enables spatial visualization within the simulation engine, and bridges continuous geographic space with discrete graph topology by projecting off-network entities onto their nearest street network components.
 Each POI $i$ is mapped to its topologically closest supply asset $s^*(i, r)$ for resource type $r \in \{\text{power}, \text{water}\}$ via a multi-source shortest-path search:
 
+
 \begin{equation}
-    s^*(i, r) = \arg\min_{s \in \mathcal{I}_r} \text{dist}_G\left(\pi(\mathbf{p}_i), \pi(s)\right)
+    s^*(i, r) = \arg\min_{s \in \mathcal{I}_r} \text{dist}_G\left(\pi(\mathbf{p}_i), \pi(s)\right)\label{eq:ncnn}
 \end{equation}
 
 \noindent
 \begin{tabularx}{\textwidth}{@{}l X@{}}
-    $s^*(i, r)$ & Assigned supply asset of resource type $r$ serving facility $i$. \\
-    $\mathcal{I}_r$ & Set of active supply asset nodes for resource $r \in \{\text{power}, \text{water}\}$. \\
-    $\text{dist}_G(\cdot, \cdot)$ & Shortest network path distance over street graph $G = (V, E)$. \\
-    $\pi(\mathbf{p}_i), \pi(s)$ & Graph snapping operator projecting spatial coordinates of POI $i$ and asset $s$ onto $V$.
+$s^*(i, r)$ & Assigned asset of resource type $r$ topologically closest to facility $i$. \\
+$\arg\min_{s \in \mathcal{I}_r}$ & Minimization operator selecting the asset $s$ yielding shortest path. \\
+$\mathcal{I}_r$ & Set of active, operational supply assets for resource $r$. \\
+$\text{dist}_G(u, v)$ & Shortest network path distance between snapped start vertex $u$ and end vertex $v$ on $G$. \\
+$\pi(\mathbf{p}_i), \pi(s)$ & Snapping operators projecting off-network POI ($\mathbf{p}_i$) and asset ($s$) coordinates to graph vertices $u, v \in V$
 \end{tabularx}
 
 \vspace{7mm} \noindent
-This topological assignment governs the dynamic grid status $u_{i,r}(t)$ within the facility FSM:
+This topological assignment is static and happens only once at the start of the simulation.
+A dynamic assignment could be implemented by governing the dynamic grid status $u_{i,r}(t)$ within the facility FSM. :
 
 \begin{equation}
     u_{i,r}(t) = \begin{cases}
                      0 & \text{if } \mathbf{p}_{s^*(i,r)} \in \text{FloodPolygon}(t) \\
                      1 & \text{otherwise}
-    \end{cases}
+    \end{cases}\label{eq:u_i_r}
 \end{equation}
 
 \noindent
