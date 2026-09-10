@@ -1,0 +1,77 @@
+%! Author = WelJo
+%! Date = 8/18/2026
+
+\newpage
+
+\section{Introduction}
+\label{sec:introduction}
+
+% - Kleine allgemeine Einführung
+% - Motivation
+% - Relevanz des Themas/Problem
+% - Gegebenfalls Definition (knapp halten)
+% - Forschungslücke
+% - Was wird untersucht?
+% - Was sind dabei die Hypothesen?
+% - Forschungsfrage
+% - Wenn ein Verfahren entwickelt werden soll, was soll das Verfahren genau leisten?
+% - Was soll bei der Arbeit am Ende rauskommen?
+% - Eine Absatz welche eine Übersicht des ganzen Papers gibt
+%   - Jede Section wird mit einem Satz kurz beschrieben
+%Absatz 1
+%-kleine allgemeine Einführung
+%-Motivation
+
+The functioning of modern societies depends largely on critical infrastructure (CI), such as water, health care, and energy supplies as well as the transportation of food and goods~\cite{lickert2024,chiaradonna2007}. Functional dependencies may exist between CI systems~\cite{chiaradonna2007}.
+
+%Absatz 2
+%-Problemstellung (Wirtschaftsinformatisches Problem)
+
+Due to these interdependencies, disruptions can spread to other infrastructure systems and can cause cascading failures~\cite{laprie2007}. In extreme cases, such cascades can lead to widespread failures of interdependent infrastructure systems~\cite{buldyrev2010}. Therefore, when evaluating various crisis scenarios, it is crucial not only to identify which infrastructures are immediately affected, but also to understand how resulting failures can spread to dependent infrastructures over time~\cite{lickert2024}.
+
+If it comes to infrastructure failures, the ability to provide for the population depends crucially on whether critical \textbf{Point of Interest} (POI) such as hospitals, remain both operational and accessible through the road network~\cite{kaub2024,lickert2024}. Kaub et al. have developed the \textbf{Robustness of Accessibility} (RoA) approach, which compares changes in the accessibility of individual POIs between intact and disrupted road networks~\cite{kaub2024}.
+
+
+
+%Absatz 3
+%-Forschungslücke
+
+The key approaches considered here examine traffic-related accessibility in disrupted road networks and the temporal propagation of cascading failures in interdependent utility infrastructures separately. While Kaub et al. assess changes in resilience following disruptions in the road network~\cite{kaub2024}, Lickerrt et al. model the propagation of cascading failures and the associated functional failures in interdependent infrastructures~\cite{lickert2024}. Howeever, it remains unclear how traffic-related accessibility and the functionality of critical POIs, which influenced by cascading failures, jointly impact the sitaution over time during a crisis.
+
+
+
+
+
+%Absatz 4
+%-Forschungsfrage
+
+%BESPRECHUNG BEZÜGLICH DES ZIELS WICHTIG
+%Das Ziel dieser Arbeit ist es, den straßenbasierten RoA-Ansatz um eine
+%zeitabhängige Modellierung der funktionalen Zustände kritischer Points of
+%Interest (POIs) bei kaskadierenden Versorgungsausfällen zu erweitern.
+
+%Kommentar in der Hypothese H2 eventuell das Wort Lifetimes mit dem Wort Überbrückungszeit ändern????
+
+This research gap gives rise to the research question: \textit{How do cascade effects resulting from failures in transportation and utility infrastructures infleunce the time-dependent reachability (RoA) of critical utility infrastructure (POIs)?}
+
+This paper examines the following hypotheses and challenges:
+\begin{itemize}
+    \item \textbf{H1:} The inclusion of power outage cascades results in lower resilience than a purely road-based RoA analysis would suggest.
+    \item \textbf{H2:} By modeling \textit{lifetimes}, it is possible to identify critical time windows during which a POI remains functional despite blocked paths or fails despite unobstructed paths.
+\end{itemize}
+
+
+
+%Absatz 5
+%-Ziel und wissenschaftlicher Beitrag (DAS EVENTUELL VOR DIE HYPOTHESE EINBAUEN WICHTIG BESPRECHUNG)
+
+The goal of this paper is to methodologically and technically link the road-based resilience assessment of the RoA with a time-dependent modeling of cascading infrastructures failures.
+To quantify the resilience of urban areas, the \textit{RoA Index} according to Kaub et al.~\cite{kaub2024} is developed and expanded to include a crucial time-dependent operational capability of critical POIs. To this end, failures in the electricity and water supply, as well as the respective bridging times, are taken into account in the RoA assessement. The modeling of the bridging time is based on the concept of \textit{lifetime} proposed by Lickert et al.~\cite{lickert2024}. Here, \textit{lifetimes} refer to the period during which a CI remains functional after the loss of a suppy service, such as emergency power~\cite{lickert2024}. Once the lifetimes have elapsed, the affected infrastructure is classified as inoperable.
+
+
+%Absatz 6
+%Paper Overview
+
+To conduct a more realistic analysis of RoA, this paper proposes including a time-dependent component for CI in the exsiiting RoA calculation. Section 2 revolves around related works discussed exisiting methods relvant to this work regarding resilience, interdependencies, cascading failures, time-dependent functionality, and road-based accessibility and to identify the research gap concerning the between RoA and functional infrastructure conditions.
+
+
