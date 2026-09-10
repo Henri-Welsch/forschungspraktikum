@@ -46,21 +46,17 @@ For visual clarity, the plot focuses on the contrast between the road-only basel
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{resources/accessibility_comparison}
-    \caption{Temporal evolution of $RoA$ for Level A and Level C. The shaded area indicates the functional gap $\Delta RoA(t)$ emerging during HQ100 and recession phases.}
+    \caption{Temporal evolution of $RoA$ for Level A and Level C. The shaded area indicates the functional gap $\Delta RoA(t)$ between Level A and Level C}
     \label{fig:multi-tier-ts}
 \end{figure}
 
 \subsubsection{H1: Functional Gap Analysis}
 \label{subsubsec:h1-analysis}
-Hypothesis H1 is confirmed by a $1.10\,\%$ gap in the systemic peak nadir ($RoA_{\text{Sys,min}}$) between Level A ($65.50\,\%$) and Level C ($64.40\,\%$). While the difference in integrated resilience $RoA_{\text{Int}}$ appears small ($0.82\,\%$), this is due to the 336-hour window; the disruption is concentrated during the critical peak and recovery phases.
-In these windows, the functional loss of decentralized fire stations due to utility exhaustion significantly hampers local response capacity.
+Hypothesis H1 is confirmed by a $1.10\,\%$ peak nadir ($RoA_{\text{Sys,min}}$) gap between Levels A ($65.50\,\%$) and C ($64.40\,\%$). The $0.82\,\%$ integrated resilience ($RoA_{\text{Int}}$) gap reflects the 336-hour window, with disruption concentrated in peak and recovery phases due to fire station utility exhaustion.
 
 \subsubsection{H2: Temporal Hysteresis and Recovery Lag}
 \label{subsubsec:h2-analysis}
-Hypothesis H2 is confirmed by the observed systemic recovery lag.
-While Level A accessibility restores fully at hour 288 (end of recession), Level C remains compromised until hour 336.
-This 48-hour recovery lag is driven by the internal reboot delays and hysteresis thresholds implemented in the FSM, reflecting the realistic challenges of site decontamination and system restarts post-inundation.
-
+Hypothesis H2 is confirmed: Level A restores at hour 288 (recession end), while Level C remains compromised until hour 336. This 48-hour lag reflects FSM reboot delays and hysteresis thresholds during post-inundation decontamination and restarts.
 \newpage
 
 \subsection{Spatial Breakdown and District-Level Vulnerability}

@@ -1,161 +1,41 @@
 %! Author = WelJo
 %! Date = 8/18/2026
 
-\newpage
-
-\section{Fundamentals und Related Works}
+\section{Fundamentals and Related Work}
 \label{sec:related_works}
 
-% - Stark eingehen auf verwandte Arbeiten
-% - Stand der Forschung
-% - RoA (einfügen urspünglicher formel von kaub)
-% - Gegebenenfalls Definitionen (interdependenzen, kaskadierende Effekte, Lifetimes, funktionale Zustände)
-% - Ableitung der Forschungslücke (Eventuell visuelle veranschaulichung)
+Existing methods for assessing CI resilience consider various behavioral aspects during disruptions~\cite{berdica2002,calvert2017,kaub2024,lickert2024}.
+Resilience is not uniformly defined: Calvert and Snelder see it as a system's ability to cope with disruptions and restore functionality~\cite{calvert2017}, while Kaub et al.\ focus on road \textit{serviceability}~\cite{kaub2024}.
+Bruneau et al.\ highlights its time-dependent nature, where performance decreases during disruptions and gradually recovers~\cite{bruneau2003}.
+We follow this temporal perspective, evaluating functional losses and subsequent recovery.
 
-% - Stark eingehen auf verwandte Arbeiten
-% - Stand der Forschung
-% - RoA (einfügen urspünglicher formel von kaub)
-% - Gegebenenfalls Definitionen (interdependenzen, kaskadierende Effekte, Lifetimes, funktionale Zustände)
-% - Ableitung der Forschungslücke (Eventuell visuelle veranschaulichung)
+\subsection{Interdependencies and Cascading Failures}
+\label{subsec:interdependencies-and-cascading-failures}
+Critical infrastructures are complex, interconnected networks~\cite{chiaradonna2007}.
+Interdependencies are reciprocal relationships where one infrastructure's state influences another~\cite{laprie2007}.
+These can be physical, cyber-related, or geographic~\cite{chiaradonna2007}.
+Failures causing components of another infrastructure to fail are referred to as cascading failures~\cite{laprie2007}, which Buldyrev et al.\ show can propagate recursively~\cite{buldyrev2010}.
+Lickert et al.\ investigate cascades triggered by power outages, noting that infrastructures may maintain functionality via emergency supply (e.g., hospital generators) for a limited duration, termed \textit{lifetimes}~\cite{lickert2024}.
+Following these lifetimes and \textit{repair times}, systems transition between \textit{operative} and \textit{dysfunctional} states.
 
+\subsection{Road Network Resilience and Accessibility}
+\label{subsec:road-network-resilience-and-accessibility}
+Emergency services depend on road network \textit{serviceability}, the availability of connections determining travel distances and costs~\cite{kaub2024}.
+Disruptions reduce this serviceability, increasing travel times~\cite{berdica2002}.
+While the \textit{Link Performance Index for Resilience} (LPIR) evaluates segments, it requires detailed data~\cite{calvert2017}.
+Similarly, the \textit{Loss of Serviceability} (LoS) index evaluates resilience by comparing the shortest paths to analyze detours~\cite{kaub2024}.
+However, LoS fails when nodes become isolated, as the distance becomes infinite and the index loses its explanatory value~\cite{kaub2024}.
 
-%Section Theoretische Grundlagen und verwandte Arbeiten
-
-Existing methods for assessing the resilience of critical infrastructure consider various aspects of the system behavior during disruptions\cite{berdica2002,calvert2017,kaub2024,lickert2024}.
-
-%Subsection 2.1 Resilienz und kritische Infrastrukturen
-
-
-% Resilienz define
-
-Resilience is not a uniformly defined concept. Calvert and Snelder define in their study resilience as the ability of a system to cope with disruptions and restore its original functionality following a loss of function~\cite{calvert2017}. Kaub et al. consider in terms of road networks the resilience as an ability to overcome disruptions as well as to maintain or regain its \textit{serviceability}~\cite{kaub2024}.
-
-Bruneau et al. view resilience as time-dependent, understanding the performance of a system as a time-dependent quantity~\cite{bruneau2003}. A disruption can lead to reduced system performance, followed by recovery phase gradually returns to the original performance level~\cite{bruneau2003}. Thus, resilience encompasses not only functional limitations but also the development and restoration of a system performance over time~\cite{bruneau2003}.
-
-For the purposes of this paper, resilience is understood as a time-dependent property of a system, the evaluation of disruptions related functional losses as well as the consequential effects on a system performance over a period of time are taken into account.
-
-
-
-
-%-------------------------------------------------------------------------------------------------
-% Subsection 2.2 Kritische Infrastrukturen, Interdependenzen und kaskadierende Ausfälle
-%-Eine Ableitung zu kaskadierende Ausfälle aufbauen (Laprie, Buldyrev, vielleicht lickert)
-
-
-
-Critical infrastructures can be understood as complex, interconnected networks that provide essential services~\cite{chiaradonna2007}. Because of this interconnectedness, it is relevant to take the interdependencies between individual infrastructure components need to taking into account in the analysis~\cite{chiaradonna2007}.
-
-An interdependency can be described as a reciprocal relationship between two infrastructures in which the state of one infrastructure influences or is related to the state of the other~\cite{laprie2007}. Such interdependencies can take various forms and may, for example, be physical or cyber-related in nature~\cite{chiaradonna2007}.
-
-An infrastructure failure that causes components of another infrastructure to fail is referred to as a cascading failure~\cite{laprie2007}. Buldyrev et al. further demonstrate that such a failure process can continue recursively in interdependent networks~\cite{buldyrev2010}. In this context, failures of nodes in one network can lead to failures in a dependent network, which in turn can cause further failures in the original network~\cite{buldyrev2010}. This demonstrates that a disruption in one network can develop into a cascade of failures~\cite{buldyrev2010}.
-
-
-
-%-------------------------------------------------------------------------------------------------
-% Subsection 2.3 Zeitabhängige Funktionsfähigkeit und Lifetimes
-
-
-Lickert et al. use a network model to investigate failure cascades caused by power outages~\cite{lickert2024}. Various critical infrastructures and their interdependencies are represented in a network model~\cite{lickert2024}. A loss of power does not always lead to an immediate loss of function. Hospitals, for instance, can continue operating for some time because they are equipped with emergency power generators~\cite{lickert2024}.
-
-
-However, critical infrastructures cannot remain operational indefinitely without external supply and lose their functionality after a certain period of time~\cite{lickert2024}. Lickert et al. refer to this period as \textit{lifetimes}~\cite{lickert2024}. In addition to \textit{lifetimes}, they also include \textit{repair times}, which describe the time required for a critical infrastructure to become operational again after the necessary supply capacity has been restored\cite{lickert2024}. Lickert et al. model functional states using a binary classification and distinguish between an \textit{operative} and an \textit{dysfunctional} state~\cite{lickert2024}.
-
-
-
-
-
-%Lickert primär
-% -Versorgungsausfall
-% nicht zwingend sofortiger Funktionsverlust
-% zeitliche Überbrückung
-% lifetimes
-% funktinaler Zusatndswechsel
-
-%-------------------------------------------------------------------------------------------------
-
-% Subsection 2.4 Straßenesilienz, serviceability und Erreichbarkeit
-
-%-Berdica: Vulnerability
-%-Serviceability
-%-Calvert & Snelder: LPIR
-%-ggf. Loss of Serviceability
-%-Zsmh zwischen Netzstörung und Erreichbarkeit
-
-
-%Kaub hat nicht den LoS gemacht erwähnt den halt nur und deren Funktion
-
-The functionality of critical infrastructures is only one aspect of resilience. During disruptions, accessibility through the road network is also relevant~\cite{lickert2024}. Emergency services, for instance, depend on existing road network~\cite{kaub2024}.
-
-Kaub et al. understand \textit{serviceability} as the availability of connections between two network nodes. These connections determine the distance and other costs of travel~\cite{kaub2024}. If parts of the road network are disrupted, the \textit{serviceability} of a road network can decrease~\cite{berdica2002}.
-
-Various aspects can be considered when assessing resilience, including the recovery time and the degree of \textit{serviceability}~\cite{kaub2024}. Calvert and Snelder developed the \textit{Link Performance Index for Resilience} (LPIR) as a method for assessing the resilience of individual road segments within the context of a larger road network~\cite{calvert2017}. It evaluates the ability of an individual road segment to cope with disruptions in traffic flow and to recover afterwards~\cite{calvert2017}. However, the LPIR requires detailed data and is therefore less suitable for hypothetical scenarios~\cite{kaub2024}. Even complete failures of road segments can be modeled to a limited extent using this method~\cite{kaub2024}.
-
-The \textit{Loss of Serviceability} (LoS) Index assesses resilience by comparing shortest paths between a start node and a destination node under normal and disrupted network conditions~\cite{kaub2024}.Impairments to \textit{serviceability} can lead to an increase in travel time or the distance traveled~\cite{kaub2024}. This allows for an analysis of the detours caused by the failure of certain road sections~\cite{kaub2024}. However, this comparison reaches its limit when one node is completely isolated from the rest of network~\cite{kaub2024}. In this case, the distance will be considered as infinite, causing the index to lose its explanatory value~\cite{kaub2024}.
-
-
-
-%-------------------------------------------------------------------------------------------------
-% Subsection 2.5 Robustness of Acessibility (RoA)
-%%%
-
-Due to the limitations of the LoS Kaub et al. introduce \textit{Robustness of Accessibility} (RoA) as a metric for evaluating urban road networks\cite{kaub2024}. Compared to LoS, RoA does not focus individual road segments but rather the entire road network~\cite{kaub2024}.
-
-To calculate the RoA as defined by Kaub et al., the road network is represented as a graph~\cite{kaub2024}. In this approach, an intact network is compared to a disrupted version of the same network based on the shortest paths~\cite{kaub2024}. In addition, when comparing road network states, the RoA also takes into account individual inaccessible locations as well as parts of the network that remain usable~\cite{kaub2024}.
-
-The RoA value is then calculated based on the determined shortest paths~\cite{kaub2024}. Here, $c(s_j,d_j)$ describes the length of the shortest path in the intact network, and $c'(s'_j,d'_j)$ describes the corresponding length in the disrupted network. For each selected pair, the ratio of these two path lengths is determined. The individual ratios are then weighted by $a_{C,j}$ and combined to form a final RoA value~\cite{kaub2024}. The RoA is calculated as weighted sum of these ratios~\cite{kaub2024}:
+Kaub et al.\ introduced the \textit{Robustness of Accessibility} (RoA) to evaluate entire urban networks~\cite{kaub2024}.
+RoA compares the shortest path lengths in an intact network ($c(s_j,d_j)$) to a disrupted version ($c'(s'_j,d'_j)$). For each node pair, the ratio of these path lengths is weighted by $a_{\mathcal{C},j}$ and combined:
 
 \begin{equation}
-    \text{RoA}(\mathcal{C}) = \sum_{j=1}^{m} \left( a_{\mathcal{C},j} \cdot \frac{c(s_j,d_j)}{c'(s'_j, d'_j)} \right)
+    \text{RoA}(\mathcal{C}) = \sum_{j=1}^{m} \left( a_{\mathcal{C},j} \cdot \frac{c(s_j,d_j)}{c'(s'_j, d'_j)} \right) \label{eq:equation}
 \end{equation}
 
-The RoA can take values between 0 and 1~\cite{kaub2024}.A high value indicates a resilient road network, while a low value indicates lower resilience~\cite{kaub2024}. A value of 0 corresponds to a complete failure of all considered connections~\cite{kaub2024}. If a route exists in the intact network no longer exists in the disrupted network, the corresponding quotient is set to 0~\cite{kaub2024}.
-
-
-
-%Grundidee des RoA
-%Vergleich des ungestörten mit dem gestörten Straßennetz
-%kürzeste wege
-%Behandlung vollständig unerreichbarer Ziele
-%die urspügnliche Formel von KAub
-%kurze Interpretation des Wertes
-
-
-
-%-Kaub hauptfokus super wichtig
-%-Straßennetz als Graph
-%-intakter Graph
-%-gestörter Graph
-%-Source Destination Paare
-%-Shortest Path
-%-ursprüngliche RoA Formel
-%-Interpretation 0 <= RoA <= 1
-%-nicht erreichabre Verbindung -> Beitrag 0
-%-Stärke des RoA
-%-bestehende Grenze für eure Forschungsfrage
-
-% Subsection 2.6 Synthese des Forschungsstand
-
-For the present paper, the approaches of Kaub et al. and Lickert et al. are particularly relevant, as they consider different aspects of the resilience of critical infrastructure. While Kaub et al. examine accessibility in disrupted road networks~\cite{kaub2024}, they do not consider the functional aspect of facilities. Lickert et al. model the functional aspect as well as the cascading failures of interdependent networks, taking into account \textit{lifetimes} and \textit{repair times}~\cite{lickert2024}.
-
-These two approaches examine the aspect of road based accessibility and the time dependent functionality of critical infrastructure separately.
-A combined assessment of both aspects is not provided by these two approaches.
-
-Based on this, the following chapter presents an approach that extends the RoA with a time dependent functional aspect.
-
-
-%Lickert bzw die arbeiten zu interdependezen betrachten funktionale und zeitabhängige Ausfälle
-%Kaub betzrachte mit dem RoA die erreichbarkeit über eine gestörtes Straßennetz
-%Diese perspektiven behandlen unterschieldiche Aspekte
-%Daraus leutest du die Grundlage für deine Forschungsfrage ab.
-
-%-Vergleich sämtlicher Literatur miteinander
-%-Aufmerksamkeit auf die Lücke herleiten. Was bisher fehlt
-%-Vielleicht visuelle Veranschaulichung anhand einer Tabelle
-
-%-Welche Aspekte sind vorhanden
-%-Definitionen (Zitierung von anderen Papers)
-%-was müsste man tun damit das problem gelöst wird
-%-meiste literatur zitiert wird hier.
-%-RoA
-
-%\end{document}
+\noindent
+RoA values range from 0 (complete failure) to 1 (full resilience).
+If a destination becomes unreachable, the ratio is set to 0.
+While Kaub et al.\ focus on road accessibility, they omit functional facility states.
+Conversely, Lickert et al.\ model functional cascades without considering road accessibility~\cite{lickert2024}.
+This paper bridges this gap by extending the RoA index with a time-dependent functional dimension, integrating CI cascading failures with the resulting impacts on urban accessibility.
