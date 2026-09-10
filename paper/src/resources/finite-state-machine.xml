@@ -1,49 +1,41 @@
-<mxGraphModel dx="1042" dy="708" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+<mxGraphModel dx="1042" dy="674" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
     <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="FZgAsF4foWGPHQdfHR5a-1" value="&lt;b&gt;Operational&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;(Active Mode)&lt;br&gt;Both Grids Online&lt;br&gt;Buffers Refill&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;strokeWidth=2;fontSize=14;fontColor=#274e13;" parent="1" vertex="1">
             <mxGeometry x="260" y="470" width="160" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="FZgAsF4foWGPHQdfHR5a-2" value="Covered by&amp;nbsp;&lt;br&gt;Water Polygon" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;fontFamily=Helvetica;fontSize=12;fontColor=#000000;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;horizontal=0;" parent="1" source="FZgAsF4foWGPHQdfHR5a-3" target="FZgAsF4foWGPHQdfHR5a-4" edge="1">
+        <mxCell id="FZgAsF4foWGPHQdfHR5a-2" value="p&lt;sub&gt;i&lt;/sub&gt; ∈ FloodPolygon(t)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;fontFamily=Helvetica;fontSize=12;fontColor=#000000;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;horizontal=0;" parent="1" source="FZgAsF4foWGPHQdfHR5a-3" target="FZgAsF4foWGPHQdfHR5a-4" edge="1">
             <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="FZgAsF4foWGPHQdfHR5a-3" value="&lt;b&gt;Depleting&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;(Backup Mode)&lt;br&gt;1 or 2 Grids Offline&lt;br&gt;Buffers Decay&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;strokeWidth=2;fontSize=14;fontColor=#7f6000;" parent="1" vertex="1">
             <mxGeometry x="660" y="470" width="160" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="FZgAsF4foWGPHQdfHR5a-4" value="&lt;b&gt;Dead&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;(Shutdown Mode)&lt;br&gt;Standard Viability Failed&lt;br&gt;Buffers Frozen&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;fontSize=14;fontColor=#660000;" parent="1" vertex="1">
+        <mxCell id="FZgAsF4foWGPHQdfHR5a-4" value="&lt;b&gt;Dead&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;(Shutdown Mode)&lt;br&gt;Viability Failed or Flooded&lt;br&gt;Buffers Frozen&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;fontSize=14;fontColor=#660000;" parent="1" vertex="1">
             <mxGeometry x="660" y="790" width="160" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="FZgAsF4foWGPHQdfHR5a-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;fontFamily=Helvetica;fontSize=12;fontColor=#FFFFFF;curved=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;" parent="1" source="FZgAsF4foWGPHQdfHR5a-7" target="FZgAsF4foWGPHQdfHR5a-4" edge="1">
-            <mxGeometry relative="1" as="geometry">
-                <Array as="points">
-                    <mxPoint x="380" y="670" />
-                    <mxPoint x="700" y="670" />
-                </Array>
-            </mxGeometry>
-        </mxCell>
-        <mxCell id="FZgAsF4foWGPHQdfHR5a-6" value="Restart Viability Lost&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;[Grid Lost AND Buffer ≤ 15%]&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;fontFamily=Helvetica;fontSize=12;fontColor=#000000;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;" parent="1" source="FZgAsF4foWGPHQdfHR5a-7" target="FZgAsF4foWGPHQdfHR5a-4" edge="1">
+        <mxCell id="FZgAsF4foWGPHQdfHR5a-6" value="∃r : u&lt;sub&gt;i,r&lt;/sub&gt;(t) = 0 ∧ b&lt;sub&gt;i,r&lt;/sub&gt;(t) ≤ θ · B&lt;sub&gt;r&lt;/sub&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;fontFamily=Helvetica;fontSize=12;fontColor=#000000;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;" parent="1" source="FZgAsF4foWGPHQdfHR5a-7" target="FZgAsF4foWGPHQdfHR5a-4" edge="1">
             <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="FZgAsF4foWGPHQdfHR5a-7" value="&lt;b&gt;Rebooting&lt;/b&gt;&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;(Booting Up Mode)&lt;br&gt;Restart Viability Met&lt;br&gt;reboot_timer Ticking&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;strokeWidth=2;fontSize=14;fontColor=#1c4587;" parent="1" vertex="1">
             <mxGeometry x="260" y="790" width="160" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="FZgAsF4foWGPHQdfHR5a-8" value="Grid Connection Lost&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;[Power or Water]&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#d6b656;exitX=1;exitY=0.3;entryX=0;entryY=0.3;fillColor=#fff2cc;" parent="1" source="FZgAsF4foWGPHQdfHR5a-1" target="FZgAsF4foWGPHQdfHR5a-3" edge="1">
+        <mxCell id="FZgAsF4foWGPHQdfHR5a-8" value="∃r : u&lt;sub&gt;i,r&lt;/sub&gt;(t) = 0" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#d6b656;exitX=1;exitY=0.3;entryX=0;entryY=0.3;fillColor=#fff2cc;" parent="1" source="FZgAsF4foWGPHQdfHR5a-1" target="FZgAsF4foWGPHQdfHR5a-3" edge="1">
             <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="FZgAsF4foWGPHQdfHR5a-9" value="Grid Restored&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;[Before Buffer = 0%]&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#82b366;exitX=0;exitY=0.7;entryX=1;entryY=0.7;fillColor=#d5e8d4;" parent="1" source="FZgAsF4foWGPHQdfHR5a-3" target="FZgAsF4foWGPHQdfHR5a-1" edge="1">
+        <mxCell id="FZgAsF4foWGPHQdfHR5a-9" value="∀r : u&lt;sub&gt;i,r&lt;/sub&gt;(t) = 1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#82b366;exitX=0;exitY=0.7;entryX=1;entryY=0.7;fillColor=#d5e8d4;" parent="1" source="FZgAsF4foWGPHQdfHR5a-3" target="FZgAsF4foWGPHQdfHR5a-1" edge="1">
             <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="FZgAsF4foWGPHQdfHR5a-10" value="Any Buffer Reaches 0%&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;[Standard Viability Failed]&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#b85450;exitX=0.75;exitY=1;entryX=0.75;entryY=0;exitDx=0;exitDy=0;entryDx=0;entryDy=0;fillColor=#f8cecc;horizontal=0;" parent="1" source="FZgAsF4foWGPHQdfHR5a-3" target="FZgAsF4foWGPHQdfHR5a-4" edge="1">
+        <mxCell id="FZgAsF4foWGPHQdfHR5a-10" value="∃r : u&lt;sub&gt;i,r&lt;/sub&gt;(t) = 0 ∧ b&lt;sub&gt;i,r&lt;/sub&gt;(t) = 0" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#b85450;exitX=0.75;exitY=1;entryX=0.75;entryY=0;exitDx=0;exitDy=0;entryDx=0;entryDy=0;fillColor=#f8cecc;horizontal=0;" parent="1" source="FZgAsF4foWGPHQdfHR5a-3" target="FZgAsF4foWGPHQdfHR5a-4" edge="1">
             <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="FZgAsF4foWGPHQdfHR5a-11" value="Restart Viability Met&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;[(Connected&amp;nbsp;&lt;/font&gt;∨&amp;nbsp;&lt;font style=&quot;font-size: 10px;&quot;&gt;Buffers &amp;gt; 15%) ∧ not flooded ]&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#6c8ebf;exitX=0;exitY=0.7;entryX=1;entryY=0.75;fillColor=#dae8fc;entryDx=0;entryDy=0;" parent="1" source="FZgAsF4foWGPHQdfHR5a-4" target="FZgAsF4foWGPHQdfHR5a-7" edge="1">
+        <mxCell id="FZgAsF4foWGPHQdfHR5a-11" value="p&lt;sub&gt;i&lt;/sub&gt; ∉ FloodPolygon(t) ∧&lt;br&gt;∀r : (u&lt;sub&gt;i,r&lt;/sub&gt;(t) = 1 ∨ b&lt;sub&gt;i,r&lt;/sub&gt;(t) &gt; θ · B&lt;sub&gt;r&lt;/sub&gt;)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#6c8ebf;exitX=0;exitY=0.7;entryX=1;entryY=0.75;fillColor=#dae8fc;entryDx=0;entryDy=0;" parent="1" source="FZgAsF4foWGPHQdfHR5a-4" target="FZgAsF4foWGPHQdfHR5a-7" edge="1">
             <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="FZgAsF4foWGPHQdfHR5a-12" value="reboot_timer &amp;ge; recharge_delay&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;[Both Grids Connected]&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#82b366;exitX=0.25;exitY=0;entryX=0.25;entryY=1;exitDx=0;exitDy=0;fillColor=#d5e8d4;" parent="1" source="FZgAsF4foWGPHQdfHR5a-7" target="FZgAsF4foWGPHQdfHR5a-1" edge="1">
+        <mxCell id="FZgAsF4foWGPHQdfHR5a-12" value="t&lt;sub&gt;reboot&lt;/sub&gt; ≥ T&lt;sub&gt;repair&lt;/sub&gt; ∧&lt;br&gt;∀r : u&lt;sub&gt;i,r&lt;/sub&gt;(t) = 1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#82b366;exitX=0.25;exitY=0;entryX=0.25;entryY=1;exitDx=0;exitDy=0;fillColor=#d5e8d4;" parent="1" source="FZgAsF4foWGPHQdfHR5a-7" target="FZgAsF4foWGPHQdfHR5a-1" edge="1">
             <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="FZgAsF4foWGPHQdfHR5a-13" value="reboot_timer &amp;ge; recharge_delay&lt;br&gt;&lt;font style=&quot;font-size: 10px;&quot;&gt;[Partial Grid Offline]&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#d6b656;exitX=0;exitY=0.5;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitDx=0;exitDy=0;fillColor=#fff2cc;" parent="1" source="FZgAsF4foWGPHQdfHR5a-7" target="FZgAsF4foWGPHQdfHR5a-3" edge="1">
+        <mxCell id="FZgAsF4foWGPHQdfHR5a-13" value="t&lt;sub&gt;reboot&lt;/sub&gt; ≥ T&lt;sub&gt;repair&lt;/sub&gt; ∧&lt;br&gt;∃r : u&lt;sub&gt;i,r&lt;/sub&gt;(t) = 0" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#d6b656;exitX=0;exitY=0.5;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitDx=0;exitDy=0;fillColor=#fff2cc;" parent="1" source="FZgAsF4foWGPHQdfHR5a-7" target="FZgAsF4foWGPHQdfHR5a-3" edge="1">
             <mxGeometry relative="1" as="geometry">
                 <Array as="points">
                     <mxPoint x="220" y="830" />
@@ -52,7 +44,18 @@
                 </Array>
             </mxGeometry>
         </mxCell>
-        <mxCell id="FZgAsF4foWGPHQdfHR5a-14" value="Covered by&amp;nbsp;&lt;br&gt;Water Polygon" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;fontFamily=Helvetica;fontSize=12;fontColor=#000000;curved=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;" parent="1" source="FZgAsF4foWGPHQdfHR5a-1" target="FZgAsF4foWGPHQdfHR5a-4" edge="1">
+        <mxCell id="yauc1cCuIpr6VIiHAJBu-1" value="p&lt;sub&gt;i&lt;/sub&gt; ∈ FloodPolygon(t)" style="group;html=1;" vertex="1" connectable="0" parent="1">
+            <mxGeometry x="380" y="670" width="320" as="geometry" />
+        </mxCell>
+        <mxCell id="FZgAsF4foWGPHQdfHR5a-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;fontFamily=Helvetica;fontSize=12;fontColor=#000000;curved=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;" parent="yauc1cCuIpr6VIiHAJBu-1" source="FZgAsF4foWGPHQdfHR5a-7" target="FZgAsF4foWGPHQdfHR5a-4" edge="1">
+            <mxGeometry relative="1" as="geometry">
+                <Array as="points">
+                    <mxPoint />
+                    <mxPoint x="320" />
+                </Array>
+            </mxGeometry>
+        </mxCell>
+        <mxCell id="FZgAsF4foWGPHQdfHR5a-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;fontFamily=Helvetica;fontSize=12;fontColor=#000000;curved=1;fillColor=#f8cecc;strokeColor=#b85450;strokeWidth=2;" parent="yauc1cCuIpr6VIiHAJBu-1" source="FZgAsF4foWGPHQdfHR5a-1" target="FZgAsF4foWGPHQdfHR5a-4" edge="1">
             <mxGeometry relative="1" as="geometry" />
         </mxCell>
     </root>
