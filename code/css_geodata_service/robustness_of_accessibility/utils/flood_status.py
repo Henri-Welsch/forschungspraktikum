@@ -58,22 +58,30 @@ logger = logging.getLogger(__name__)
 def compute_flood_status(
     facilities: gpd.GeoDataFrame,
     flood_geometry: Optional[BaseGeometry],
+    use_representative_point: bool = False,
 ) -> pd.Series:
     """Return a boolean Series (aligned with *facilities*' index): ``True``
-    where a facility's representative point is covered by *flood_geometry*.
+    where a facility's geometry (or representative point) is covered by
+    *flood_geometry*.
 
-    A facility is considered flooded when a single representative point of
-    its geometry falls inside the flood polygon — not when any part of its
-    (possibly very large) footprint merely touches it. This deliberately
-    trades a small chance of under-reporting a partial flood for avoiding
-    false positives where a sliver of the flood polygon clips the edge of a
-    large campus/footprint while the building itself is unaffected; it also
-    keeps the flood decision consistent with the map, which only ever draws
-    a single point marker per facility. ``representative_point()`` (not
-    ``centroid``) is used because the centroid of a concave footprint can
-    fall outside the polygon entirely. ``flood_geometry`` of ``None`` (or an
-    empty geometry) means no flooding is present — every facility is
-    reported as available.
+    When *use_representative_point* is ``True``, a facility is considered
+    flooded when a single representative point of its geometry falls inside
+    the flood polygon — not when any part of its (possibly very large)
+    footprint merely touches it. This deliberately trades a small chance of
+    under-reporting a partial flood for avoiding false positives where a
+    sliver of the flood polygon clips the edge of a large campus/footprint
+    while the building itself is unaffected; it also keeps the flood
+    decision consistent with the map, which only ever draws a single point
+    marker per facility. ``representative_point()`` (not ``centroid``) is
+    used because the centroid of a concave footprint can fall outside the
+    polygon entirely.
+
+    When *use_representative_point* is ``False`` (default), the full
+    geometric intersection is used: a facility is considered flooded if any
+    part of its geometry intersects the flood polygon.
+
+    ``flood_geometry`` of ``None`` (or an empty geometry) means no flooding
+    is present — every facility is reported as available.
 
     Parameters
     ----------
@@ -85,6 +93,9 @@ def compute_flood_status(
         The current flood polygon (same CRS as *facilities*, EPSG:4326 for
         the stages produced by ``flood_interpolation``), or ``None`` for no
         flooding.
+    use_representative_point : bool
+        If True, simplify facility geometry to a representative point for
+        the intersection check. Default False (no simplification).
 
     Returns
     -------
@@ -93,12 +104,15 @@ def compute_flood_status(
     """
     if flood_geometry is None or flood_geometry.is_empty or len(facilities) == 0:
         return pd.Series(False, index=facilities.index)
-    return facilities.geometry.representative_point().intersects(flood_geometry)
+    if use_representative_point:
+        return facilities.geometry.representative_point().intersects(flood_geometry)
+    return facilities.geometry.intersects(flood_geometry)
 
 
 def compute_flood_status_by_stage(
     facility_gdfs: Dict[str, gpd.GeoDataFrame],
     stages: List[Dict],
+    use_representative_point: bool = False,
 ) -> Dict[str, List[List[bool]]]:
     """For every pre-computed flood *stage*, determine which facilities of
     each type are flooded.
@@ -113,6 +127,9 @@ def compute_flood_status_by_stage(
         :func:`css_geodata_service.robustness_of_accessibility.utils.flood_interpolation.load_or_compute_flood_stages`.
         Each entry has keys ``stage_index``, ``progress``, ``geojson``
         (a GeoJSON geometry dict, or ``None`` for a no-flood stage).
+    use_representative_point : bool
+        If True, simplify facility geometry to a representative point.
+        Default False.
 
     Returns
     -------
@@ -129,7 +146,9 @@ def compute_flood_status_by_stage(
         flood_geometry = shape(geojson_geom) if geojson_geom is not None else None
 
         for ftype, gdf in facility_gdfs.items():
-            flooded = compute_flood_status(gdf, flood_geometry)
+            flooded = compute_flood_status(
+                gdf, flood_geometry, use_representative_point=use_representative_point
+            )
             results[ftype].append(flooded.tolist())
 
     logger.info(
@@ -297,6 +316,7 @@ def load_or_compute_flood_status_by_stage(
     facility_gdfs: Dict[str, gpd.GeoDataFrame],
     stages: List[Dict],
     place_name: str = "Trier, Germany",
+    use_representative_point: bool = False,
     force_recompute: bool = False,
 ) -> Dict[str, List[List[bool]]]:
     """Cached wrapper around :func:`compute_flood_status_by_stage`.
@@ -305,6 +325,7 @@ def load_or_compute_flood_status_by_stage(
     File name pattern::
 
         direct_flood_status_{safe_place}_{n_stages}.json
+        (or _simplified for representative point mode)
 
     Parameters
     ----------
@@ -316,6 +337,8 @@ def load_or_compute_flood_status_by_stage(
         Pre-computed flood stages list.
     place_name : str
         Embedded in cache-file names to avoid collisions across cities.
+    use_representative_point : bool
+        Passed to :func:`compute_flood_status_by_stage`. Default False.
     force_recompute : bool
         Ignore existing cache files and recompute.
 
@@ -328,14 +351,19 @@ def load_or_compute_flood_status_by_stage(
     status_cache_dir.mkdir(parents=True, exist_ok=True)
 
     safe_place = place_name.replace(", ", "_").replace(" ", "_")
-    cache_file = status_cache_dir / f"direct_flood_status_{safe_place}_{len(stages)}.json"
+    suffix = "_simplified" if use_representative_point else ""
+    cache_file = status_cache_dir / f"direct_flood_status_{safe_place}_{len(stages)}{suffix}.json"
 
     if cache_file.exists() and not force_recompute:
         logger.info("Direct flood status: loading cached results from %s", cache_file)
         with open(cache_file, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    results = compute_flood_status_by_stage(facility_gdfs=facility_gdfs, stages=stages)
+    results = compute_flood_status_by_stage(
+        facility_gdfs=facility_gdfs,
+        stages=stages,
+        use_representative_point=use_representative_point,
+    )
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
     logger.info("Direct flood status: results cached to %s", cache_file)

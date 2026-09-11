@@ -27,6 +27,9 @@ from css_geodata_service.robustness_of_accessibility.utils.dynamic_roa import (
     load_or_compute_multi_tier_bundle,
     TIER_CONFIGS,
 )
+from css_geodata_service.robustness_of_accessibility.examples.notebooks.notebook_utils import (
+    RoaNotebookConfig,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("MultiTierEval")
@@ -42,6 +45,7 @@ def run_all_tiers():
         cache_dir=proc_dir,
         hq_raw_dir=hq_raw_dir,
         place_name=place_name,
+        simplification_active=RoaNotebookConfig.simplification_active,
         force_recompute=True,
     )
 

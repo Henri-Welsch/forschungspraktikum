@@ -19,6 +19,7 @@ class RoaNotebookConfig:
     undirected_graph: bool = True
     event = HazardEventLikelyhood.HQ100
     assume_bridges_as_unaffected: bool = True
+    simplification_active: bool = False
 
 
 def set_notbook_wd():
@@ -27,6 +28,16 @@ def set_notbook_wd():
     if Path().resolve() != code_dir:
         os.chdir(code_dir)
     print(f"Working dir set to: {os.getcwd()}")
+    project_root = Path(__file__).resolve().parents[5]
+    root_cache = project_root / "cache"
+    code_cache = code_dir / "cache"
+    if root_cache.exists():
+        ox.settings.cache_folder = str(root_cache)
+    elif code_cache.exists():
+        ox.settings.cache_folder = str(code_cache)
+    ox.settings.overpass_url = "https://overpass.freemap.sk/api"
+    ox.settings.overpass_endpoint = "https://overpass.freemap.sk/api"
+    ox.settings.overpass_rate_limit = False
 
 
 def get_working_directory() -> Path:
@@ -109,6 +120,13 @@ def load_or_fetch_osm_features(
     """
     if cache_path.exists():
         return gpd.read_file(cache_path)
+    project_root = Path(__file__).resolve().parents[5]
+    root_cache = project_root / "cache"
+    code_cache = project_root / "code" / "cache"
+    if root_cache.exists() and not Path(ox.settings.cache_folder).exists():
+        ox.settings.cache_folder = str(root_cache)
+    elif code_cache.exists() and not Path(ox.settings.cache_folder).exists():
+        ox.settings.cache_folder = str(code_cache)
     gdf = ox.features_from_polygon(polygon=polygon, tags=tags)
     cache_path.parent.mkdir(parents=True, exist_ok=True)
     gdf.to_file(cache_path, driver="GeoJSON")

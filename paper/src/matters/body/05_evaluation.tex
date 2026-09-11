@@ -1,7 +1,7 @@
 %! Author = WelJo
 %! Date = 8/18/2026
 
-
+\newpage
 \section{Results and Evaluation}
 \label{sec:results-and-evaluation}
 
@@ -11,7 +11,7 @@ We evaluate the impact of infrastructure coupling on the integrated robustness o
 \subsection{Scope and Methodological Baseline}
 \label{subsec:scope-and-baseline}
 
-Our Level A (Road) baseline yields $RoA_{\text{Int}} = 88.31\,\%$ and a systemic nadir ($RoA_{\text{Sys,min}}$) of $65.50\,\%$ during HQ100.
+Our Level A (Road) baseline yields $RoA_{\text{Int}} = 84.58\,\%$ and a systemic nadir ($RoA_{\text{Sys,min}}$) of $38.41\,\%$ during HQ100.
 This differs from the $70.1\,\%$ benchmark by Kaub et al.~\cite{kaub2024}, reached during HQ100, due to our narrower municipal scope ($\sim 117\,\text{km}^2$, $12$ stations, $5,817$ nodes vs.~their regional $44$ stations, $26,853$ nodes).
 The resulting lack of suburban redundancy, paired with localized Trier gauge hydrodynamic data, yields a conservative, high-fidelity assessment.
 Consequently, we evaluate performance by comparing Level A (baseline $RoA$) directly against Level C (compound effects) rather than Kaub et al.'s regional benchmark.
@@ -31,10 +31,10 @@ As hypothesized, the introduction of compounding effects (Level C) results in a 
         \hline
         \textbf{Level} & \textbf{$RoA_{\text{Int}}$} & \textbf{$RoA_{\text{Sys,min}}$} & \textbf{Hosp. Nadir} & \textbf{Fire Nadir} \\
         \hline
-        Level A & $88.31\%$ & $65.50\%$ & $52.62\%$ & $78.38\%$ \\
-        Level B1 & $87.49\%$ & $64.40\%$ & $52.62\%$ & $76.18\%$ \\
-        Level B2 & $88.15\%$ & $65.50\%$ & $52.62\%$ & $78.38\%$ \\
-        Level C & $87.49\%$ & $64.40\%$ & $52.62\%$ & $76.18\%$ \\
+        Level A & $84.58\%$ & $38.41\%$ & $0.00\%$ & $76.82\%$ \\
+        Level B1 & $78.20\%$ & $37.29\%$ & $0.00\%$ & $74.59\%$ \\
+        Level B2 & $78.84\%$ & $38.41\%$ & $0.00\%$ & $76.82\%$ \\
+        Level C & $78.20\%$ & $37.29\%$ & $0.00\%$ & $74.59\%$ \\
         \hline
     \end{tabularx}
 \end{table}
@@ -52,19 +52,39 @@ For visual clarity, the plot focuses on the contrast between the road-only basel
 
 \subsubsection{H1: Functional Gap Analysis}
 \label{subsubsec:h1-analysis}
-Hypothesis H1 is confirmed by a $1.10\,\%$ peak nadir ($RoA_{\text{Sys,min}}$) gap between Levels A ($65.50\,\%$) and C ($64.40\,\%$). The $0.82\,\%$ integrated resilience ($RoA_{\text{Int}}$) gap reflects the 336-hour window, with disruption concentrated in peak and recovery phases due to fire station utility exhaustion.
+Hypothesis H1 is confirmed by a $1.12\,\%$ peak nadir ($RoA_{\text{Sys,min}}$) gap between Levels A ($38.41\,\%$) and C ($37.29\,\%$). The $6.38\,\%$ integrated resilience ($RoA_{\text{Int}}$) gap reflects the 336-hour window, with disruption concentrated in peak and recovery phases due to fire station utility exhaustion.
 
 \subsubsection{H2: Temporal Hysteresis and Recovery Lag}
 \label{subsubsec:h2-analysis}
 Hypothesis H2 is confirmed: Level A restores at hour 288 (recession end), while Level C remains compromised until hour 336. This 48-hour lag reflects FSM reboot delays and hysteresis thresholds during post-inundation decontamination and restarts.
 \newpage
 
+
+\subsection{Spatial Resilience and Municipal-Wide Accessibility Loss}
+\label{subsec:spatial-resilience-analysis}
+
+Figure~\ref{fig:spatial_resilience_map} maps accessibility loss across Trier at HQ100, contrasting the transport baseline (Level A) with compound infrastructure failure (Level C).
+Darker red shades denote higher accessibility loss, illustrating high-level spatial trends.
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\linewidth]{resources/spatial_resilience_map}
+\caption{Accessibility loss ($\Delta RoA_j$) across Trier at peak flood (HQ100): Level A baseline vs. Level C compound failure.}
+\label{fig:spatial_resilience_map}
+\end{figure}
+
+\noindent
+Disrupting emergency assets during HQ100 reduces accessibility citywide, even in dry peripheral districts.
+Compound failures (Level C) compound this impact—for instance, in Ruwer-Eitelsbach, the local fire station stays functional under Level A but fails under Level C due to lost utilities.
+
+\newpage
 \subsection{Spatial Breakdown and District-Level Vulnerability}
 \label{subsec:spatial-breakdown-and-district-level-vulnerability}
 
 The spatial distribution of the functional gap $\Delta RoA_j$ at peak flood (HQ100) is visualized in Figure~\ref{fig:spatial-gap}.
 The primary driver of this disparity is the district of Ruwer-Eitelsbach.
-Because surrounding roads are entirely inundated, hospital accessibility drops identically ($67.7\,\%$) in both Level A and Level C\@.
+Because surrounding roads are entirely inundated, hospital accessibility drops identically to $0.00\,\%$ in both Level A and Level C\@.
 However, coverage metrics diverge significantly regarding fire services.
 In Level A, the local fire station is modeled as operational because its physical facility remains above the water line.
 In Level C, off-site power station failures and exhausted facility power buffer renders the station non-functional despite remaining dry.
@@ -78,7 +98,7 @@ This cascading utility failure leaves the isolated district completely without e
 \end{figure}
 
 \noindent
-As detailed in Table~\ref{tab:district-breakdown} and Figure~\ref{fig:spatial-gap}, Pfalzel and Ehrang experience the highest overestimation gaps ($>3\,\%$) from compounded road inundation and substation failures. Spatially, hospital centralization causes uniform accessibility losses in peripheral districts, whereas the distributed fire station network maintains higher baseline resilience despite localized utility outages dropping its nadir from $78.38\,\%$ to $76.18\,\%$ (Figure~\ref{fig:multi-tier-ts}).
+As visualized in Figure~\ref{fig:spatial-gap}, Ruwer-Eitelsbach experiences the highest overestimation gap (mean $31.99\,\%$, reaching up to $50.00\,\%$) from compounded road inundation and facility buffer exhaustion. Spatially, hospital centralization causes uniform accessibility losses in peripheral districts, whereas the distributed fire station network maintains higher baseline resilience despite localized utility outages dropping its nadir from $76.82\,\%$ to $74.59\,\%$ (Figure~\ref{fig:multi-tier-ts}).
 
 \subsection{Conclusion of Evaluation}
 \label{subsec:evaluation-conclusion}

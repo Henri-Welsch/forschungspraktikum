@@ -10,7 +10,7 @@ The proposed framework is implemented as a modular Python-based simulation and c
 \label{subsec:study-area-and-data-acquisition}
 
 \subsubsection{Urban Road Network and Facility Extraction}
-Geospatial features for the administrative boundary of Trier ($\sim 117\,\text{km}^2$) are extracted from OpenStreetMap (OSM) via the \texttt{OSMnx} library \cite{osmwiki_features2026}. The transport infrastructure is modeled as an undirected road network graph $G = (V, E)$ filtered to the ``drive'' network type to reflect motorized emergency services (ambulances and fire engines). 
+Geospatial features for the administrative boundary of Trier ($\sim 117\,\text{km}^2$) are extracted from OpenStreetMap (OSM) via the \texttt{OSMnx} library. The transport infrastructure is modeled as an undirected road network graph $G = (V, E)$ filtered to the ``drive'' network type to reflect motorized emergency services (ambulances and fire engines).
 
 \noindent
 Critical facilities are queried using standard OSM tag schemas and categorized into destination POIs and supporting utility infrastructure:

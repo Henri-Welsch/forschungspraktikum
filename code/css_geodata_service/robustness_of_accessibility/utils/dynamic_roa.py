@@ -431,6 +431,7 @@ def load_or_compute_multi_tier_bundle(
     place_name: str = "Trier, Germany",
     hq_raw_dir: Optional[Path | str] = None,
     tier_configs: Optional[Dict[str, Dict[str, Any]]] = None,
+    simplification_active: bool = False,
     force_recompute: bool = False,
 ) -> Dict[str, Any]:
     """Load pre-computed multi-tier RoA simulation bundle (Levels A, B1, B2, C)
@@ -464,6 +465,9 @@ def load_or_compute_multi_tier_bundle(
         Path to raw hydrodynamic gauge stage directory (``HQ_raw``).
     tier_configs : dict, optional
         Dictionary mapping tier keys to configuration metadata. Defaults to :data:`TIER_CONFIGS`.
+    simplification_active : bool
+        If True, use geometric simplifications (representative point for
+        facilities, simplified boundary). Default False.
     force_recompute : bool
         If True, ignore cached files and recompute all 4 simulation tiers.
 
@@ -624,6 +628,8 @@ def load_or_compute_multi_tier_bundle(
             facility_gdfs=facility_gdfs,
             stages=stages,
             place_name=place_name,
+            use_representative_point=simplification_active,
+            force_recompute=force_recompute,
         )
 
     if dependency_status is None:

@@ -21,14 +21,14 @@ Algorithm
 ---------
 1. Merge all HQ100 source polygons via ``unary_union``.
 2. Reproject to EPSG:25832 (UTM 32N) so all distances are in metres.
-3. Apply ``simplify(simplify_m)`` to reduce the vertex count for efficient
-   buffer computation and compact GeoJSON storage.
+3. Optionally apply ``simplify(simplify_m)`` to reduce the vertex count.
+   Default is 0.0 (disabled).
 4. Binary-search for ``max_erosion_m``: the minimum inward buffer that
    produces an empty geometry.
 5. For each stage index ``i`` in ``[0, n_stages)``, compute progress
    ``p = i / (n_stages - 1)`` and apply buffer ``−max_erosion_m * (1 − p)``.
-6. Reproject each stage polygon back to EPSG:4326 and apply a final
-   coordinate-space simplification to reduce GeoJSON output size.
+6. Reproject each stage polygon back to EPSG:4326 and optionally apply a
+   final coordinate-space simplification. Default is 0.0 (disabled).
 7. Persist all stages as a GeoJSON FeatureCollection::
 
        {cache_dir}/flood_interpolation/flood_stages_{safe_place}_{n_stages}.geojson
@@ -148,6 +148,8 @@ def load_or_compute_flood_stages(
     hq100_gdf: gpd.GeoDataFrame,
     n_stages: int = 50,
     place_name: str = "Trier, Germany",
+    simplify_m: float = 0.0,
+    simplify_display: float = 0.0,
     force_recalculate: bool = False,
 ) -> List[Dict]:
     """Load or compute *n_stages* intermediate flood inundation polygons.
@@ -172,6 +174,12 @@ def load_or_compute_flood_stages(
         More stages → smoother animation; fewer stages → faster startup.
     place_name : str
         Embedded in the cache-file name to avoid collisions across cities.
+    simplify_m : float
+        Douglas–Peucker simplification tolerance in metres applied *before*
+        buffering. Default 0.0 (disabled).
+    simplify_display : float
+        Coordinate-space simplification in degrees applied *after*
+        reprojection back to EPSG:4326. Default 0.0 (disabled).
     force_recalculate : bool
         Ignore any existing cache file and always recompute.
 
@@ -203,7 +211,9 @@ def load_or_compute_flood_stages(
         "Flood stages: computing %d stages for '%s' …",
         n_stages, place_name,
     )
-    stages = _compute_flood_stages(hq100_gdf, n_stages)
+    stages = _compute_flood_stages(
+        hq100_gdf, n_stages, simplify_m=simplify_m, simplify_display=simplify_display
+    )
     _save_stages_to_cache(stages, cache_file)
     logger.info(
         "Flood stages: %d stages persisted to %s",
@@ -218,13 +228,13 @@ def load_or_compute_hq_raw_flood_stages(
     place_name: str = "Trier, Germany",
     min_gauge_m: float = 9.0,
     max_gauge_m: float = 11.80,
-    simplify_tolerance: float = 0.0001,
+    simplify_tolerance: float = 0.0,
     force_recalculate: bool = False,
 ) -> List[Dict]:
     """Load or pre-process hydrodynamic flood stage polygons from raw gauge GeoJSONs (HQ_raw).
 
     Discovers discrete gauge stages (e.g. 9.00 m to 11.80 m in 10 cm steps), aligns CRS to
-    EPSG:4326, applies light coordinate simplification for compact storage and smooth rendering,
+    EPSG:4326, applies optional coordinate simplification for compact storage and smooth rendering,
     and caches the stage collection to disk.
 
     The current provided data inside ``HQ_raw`` covers the Trier, Germany area and includes
@@ -243,7 +253,7 @@ def load_or_compute_hq_raw_flood_stages(
     max_gauge_m : float
         Maximum gauge height to include (default: 11.80 m for HQ100).
     simplify_tolerance : float
-        Coordinate simplification in degrees (default 0.0001 ≈ 7m).
+        Coordinate simplification in degrees (default 0.0, disabled).
     force_recalculate : bool
         If True, ignore cache and recompute.
 
@@ -442,7 +452,8 @@ def _interpolate_stage(
 def _compute_flood_stages(
     hq100_gdf: gpd.GeoDataFrame,
     n_stages: int,
-    simplify_m: float = 25.0,
+    simplify_m: float = 0.0,
+    simplify_display: float = 0.0,
 ) -> List[Dict]:
     """Compute *n_stages* flood polygons from no-flood to full HQ100 extent.
 
@@ -455,7 +466,10 @@ def _compute_flood_stages(
     simplify_m : float
         Douglas–Peucker simplification tolerance in metres applied to the
         unified polygon *before* buffering.  Reduces vertex count for faster
-        processing and more compact GeoJSON output.  Default is 25 m.
+        processing and more compact GeoJSON output. Default 0.0 (disabled).
+    simplify_display : float
+        Coordinate-space simplification in degrees applied *after*
+        reprojection back to EPSG:4326. Default 0.0 (disabled).
 
     Returns
     -------
@@ -463,20 +477,25 @@ def _compute_flood_stages(
         Stage entries with keys ``stage_index``, ``progress``, ``geojson``.
     """
     # ------------------------------------------------------------------
-    # 1. Project to metric CRS and build simplified union
+    # 1. Project to metric CRS and build union (optionally simplified)
     # ------------------------------------------------------------------
     gdf_m = hq100_gdf.to_crs("EPSG:25832")
     union_m = unary_union(gdf_m.geometry)
-    union_simplified = union_m.simplify(simplify_m, preserve_topology=True)
-    logger.debug(
-        "HQ100 union: %.0f m² (original) → simplified at %.0f m tolerance",
-        union_m.area, simplify_m,
-    )
+
+    if simplify_m > 0:
+        union_processed = union_m.simplify(simplify_m, preserve_topology=True)
+        logger.debug(
+            "HQ100 union: %.0f m² (original) → simplified at %.0f m tolerance",
+            union_m.area, simplify_m,
+        )
+    else:
+        union_processed = union_m
+        logger.debug("HQ100 union: %.0f m² (original), simplification disabled", union_m.area)
 
     # ------------------------------------------------------------------
     # 2. Determine the maximum inward erosion distance
     # ------------------------------------------------------------------
-    max_erosion_m = _find_max_erosion_m(union_simplified)
+    max_erosion_m = _find_max_erosion_m(union_processed)
     logger.info(
         "Flood stages: max erosion %.1f m, computing %d stages …",
         max_erosion_m, n_stages,
@@ -489,7 +508,7 @@ def _compute_flood_stages(
     for i in range(n_stages):
         progress = i / (n_stages - 1) if n_stages > 1 else 1.0
 
-        geom_m = _interpolate_stage(union_simplified, max_erosion_m, progress)
+        geom_m = _interpolate_stage(union_processed, max_erosion_m, progress)
 
         if geom_m is None:
             geojson_geom = None
@@ -500,12 +519,13 @@ def _compute_flood_stages(
                 .to_crs("EPSG:4326")
                 .geometry.iloc[0]
             )
-            # Light coordinate-space simplification to keep the GeoJSON compact
-            # (~0.0001° ≈ 7 m at Trier's latitude — acceptable for display).
-            geom_display = geom_4326.simplify(0.0001, preserve_topology=True)
+            # Optional coordinate-space simplification to keep the GeoJSON compact
+            if simplify_display > 0:
+                geom_4326 = geom_4326.simplify(simplify_display, preserve_topology=True)
+
             # Extract the geometry dict directly (no wrapping FeatureCollection)
             raw = json.loads(
-                gpd.GeoSeries([geom_display], crs="EPSG:4326").to_json()
+                gpd.GeoSeries([geom_4326], crs="EPSG:4326").to_json()
             )
             geojson_geom = raw["features"][0]["geometry"]
 
@@ -1761,6 +1781,7 @@ def build_flood_animation_html(
     restart_threshold: float = 0.15,
     roa_data: Optional[Dict[str, Any]] = None,
     multi_tier_bundle: Optional[Dict[str, Any]] = None,
+    simplify_boundary: bool = False,
 ) -> Path:
     """Generate a self-contained HTML flood simulation animation file.
 
@@ -1831,6 +1852,9 @@ def build_flood_animation_html(
         from :func:`load_or_compute_dynamic_roa`. When provided, displays a synchronized
         live RoA status HUD, service breakdown, total RoA_Int resilience score, and
         an animated timeline sparkline chart. Omit (default ``None``) to omit the panel.
+    simplify_boundary : bool
+        If True, simplify boundary geometry for compact embedding (0.001 degrees).
+        Default False.
 
     Returns
     -------
@@ -1843,9 +1867,13 @@ def build_flood_animation_html(
     stage_for_hour = build_stage_for_hour(stages)
 
     # ------------------------------------------------------------------
-    # 2. Simplify boundary geometry for compact embedding
+    # 2. Simplify boundary geometry for compact embedding (optional)
     # ------------------------------------------------------------------
-    boundary_simplified = boundary_geom.simplify(0.001, preserve_topology=True)
+    if simplify_boundary:
+        boundary_simplified = boundary_geom.simplify(0.001, preserve_topology=True)
+    else:
+        boundary_simplified = boundary_geom
+
     boundary_js = json.dumps(
         boundary_simplified.__geo_interface__, separators=(",", ":")
     )
