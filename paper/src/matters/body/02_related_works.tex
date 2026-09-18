@@ -16,7 +16,7 @@ Interdependencies are reciprocal relationships where one infrastructure's state 
 These can be physical, cyber-related, or geographic~\cite{chiaradonna2007}.
 Failures causing components of another infrastructure to fail are referred to as cascading failures~\cite{laprie2007}, which Buldyrev et al.\ show can propagate recursively~\cite{buldyrev2010}.
 Lickert et al.\ investigate cascades triggered by power outages, noting that infrastructures may maintain functionality via emergency supply (e.g., hospital generators) for a limited duration, termed \textit{lifetimes}~\cite{lickert2024}.
-Following these lifetimes and \textit{repair times}, systems transition between \textit{operative} and \textit{dysfunctional} states.
+Following these lifetimes and \textit{repair times}, systems transition between \textit{operative} and \textit{dysfunctional} states~\cite{lickert2024}.
 
 \subsection{Road Network Resilience and Accessibility}
 \label{subsec:road-network-resilience-and-accessibility}
@@ -34,8 +34,8 @@ RoA compares the shortest path lengths in an intact network ($c(s_j,d_j)$) to a 
 \end{equation}
 
 \noindent
-RoA values range from 0 (complete failure) to 1 (full resilience).
-If a destination becomes unreachable, the ratio is set to 0.
-While Kaub et al.\ focus on road accessibility, they omit functional facility states.
+RoA values range from 0 (complete failure) to 1 (full resilience)~\cite{kaub2024}.
+If a destination becomes unreachable, the ratio is set to 0~\cite{kaub2024}.
+While Kaub et al.\ focus on road accessibility, they omit functional facility states~\cite{kaub2024}.
 Conversely, Lickert et al.\ model functional cascades without considering road accessibility~\cite{lickert2024}.
 This paper bridges this gap by extending the RoA index with a time-dependent functional dimension, integrating CI cascading failures with the resulting impacts on urban accessibility.
