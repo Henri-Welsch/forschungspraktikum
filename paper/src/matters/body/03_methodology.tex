@@ -42,7 +42,7 @@ The new RoA formula looks as follows:
     $c(s_j, d_j, t)$ & Travel cost from origin $s_j$ to destination $d_j$ at simulation time $t$.
 \end{tabularx}
 
-\subsubsection{Time-Integrated RoA over $T$}
+\subsubsection{Time-Integrated RoA over $T$: }
 Because $\text{RoA}(\mathcal{C}, t)$ is evaluated continuously over the course of the simulation rather than as a static snapshot, total resilience over the crisis period is captured by the time-integrated RoA ($\text{RoA}_{\text{Int}}$):
 
 \begin{equation}
@@ -54,7 +54,7 @@ Because $\text{RoA}(\mathcal{C}, t)$ is evaluated continuously over the course o
     $\text{RoA}_{\text{Int}}(\mathcal{C})$ & Cumulative time-integrated resilience index over the disaster horizon. \\
     $\mathcal{C}$ & Set of evaluated origin-destination POI connections. \\
     $[t_0, t_N]$ & Analysis period from the start ($t_0$) to the end ($t_N$) of the simulation. \\
-    $\frac{1}{t_{\text{end}} - t_{\text{start}}}$ & Normalizing the area under the resilience curve to $[0, 1]$. \\
+    $\frac{1}{t_N - t_0}$ & Normalizing the area under the resilience curve to $[0, 1]$. \\
     $\text{RoA}(\mathcal{C}, t)$ & Time-dependent accessibility index of connections $\mathcal{C}$ at time $t$. \\
     $dt$ & Differential element for integration over time $t$.
 \end{tabularx}
@@ -104,13 +104,15 @@ To capture this dynamic functionality, we model each POI $i$ using a four-state 
 
 \subsubsection{FSM State Transitions and Hysteresis:}
 FSM state transitions are governed by resource availability, continuous flood exposure, and hysteresis rules, as summarized in Table~\ref{tab:fsm-state-transitions}.
-The parameter $\theta = 0.15$ enforces hysteresis by defining the minimum relative buffer capacity required for a facility to initiate rebooting without full grid restoration, preventing rapid failure-recovery cycling (chattering).
-Within each state, transition guards are evaluated sequentially with early-exit semantics: the first condition that evaluates to true triggers the state update, bypassing subsequent guards.
+Here, $\mathbf{p}_i$ denotes the geographic coordinates of facility $i$, with $\mathbf{p}_i \in \text{FloodPolygon}(t)$ indicating direct site inundation at time $t$.
+Resource dependencies, including utility status $u{i,r}(t)$, reserve buffers $b{i,r}(t)$, and maximum capacities $B_r$ for $r \in {\text{power}, \text{water}}$, are detailed in the subsequent \hyperref[subsubsec:fsm-buffer-dynamics]{\textit{FSM Buffer Dynamics}} section.
+The parameter $\theta = 0.15$ enforces hysteresis by defining the minimum relative buffer capacity required to initiate rebooting without full grid restoration, preventing rapid failure-recovery cycling (chattering).
 
+\vspace{-\topsep}
 
 \begin{table}[htbp]
     \centering
-    \caption{State transitions and guard conditions governing facility FSM updates (evaluated sequentially with early exit).}
+    \caption{State transitions and guard conditions governing facility FSM updates.}
     \label{tab:fsm-state-transitions}
     \renewcommand{\arraystretch}{1.30} % Expands vertical row spacing
     \begin{tabularx}{\textwidth}{l l X}
@@ -135,9 +137,10 @@ Within each state, transition guards are evaluated sequentially with early-exit 
 \end{table}
 
 \subsubsection{FSM Buffer Dynamics:}
-Each POI maintains independent reserve buffers $b_{i,r}(t)$ for each resource $r \in \{\text{power}, \text{water}\}$ with maximum capacity $B_r$.
+\label{subsubsec:fsm-buffer-dynamics}
+Each POI $i$ maintains independent reserve buffers $b_{i,r}(t)$ for each resource $r \in \{\text{power}, \text{water}\}$ with maximum capacity $B_r$.
 During grid outages ($u_{i,r}(t) = 0$), reserves deplete at the rate $\lambda_r$.
-When grid connectivity is restored ($u_{i,r}(t) = 1$), reserves recharge at the rate $\mu_r$:
+When grid connectivity is restored ($u_{i,r}(t) = 1$), reserves recharge at the rate $\mu_r$, while $f_i(t)$ = 1:
 
 \begin{equation}
     b_{i,r}(t + 1) = \begin{cases}
@@ -167,7 +170,7 @@ $\max, \min$ & Clamping bounds enforcing physical reserve limits $[0, B_r]$.
 \label{subsec:infrastructure-coupling-via-ncnn}
 
 
-Critical utility networks (power and water) physically follow street corridors underground, despite the individual supply assets and points of interest (POIs) often being located off the road network itself, as highlighted by Okabe et al.\ \cite{okabe2012}.
+Critical utility networks (power and water) physically follow street corridors underground, despite the individual supply assets and POIs often being located off the road network itself, as highlighted by Okabe et al.\ \cite{okabe2012}.
 To capture topological barriers without assuming unconstrained Euclidean connectivity, utility dependencies are established using Network-Constrained Nearest-Neighbor (NCNN) mapping over an edge-weighted undirected street graph $G = (V, E)$.
 This framework accurately models underlying conduit pathways, enables spatial visualization within the simulation engine, and bridges continuous geographic space with discrete graph topology by projecting off-network entities onto their nearest street network components.
 Each POI $i$ is mapped to its topologically closest supply asset $s^*(i, r)$ for resource type $r \in \{\text{power}, \text{water}\}$ via a multi-source shortest-path search:
@@ -188,7 +191,7 @@ $\pi(\mathbf{p}_i), \pi(s)$ & Snapping operators projecting off-network POI ($\m
 
 \vspace{7mm} \noindent
 This topological assignment is static and happens only once at the start of the simulation.
-A dynamic assignment could be implemented by governing the dynamic grid status $u_{i,r}(t)$ within the facility FSM. :
+A dynamic assignment could be implemented by governing the dynamic grid status $u_{i,r}(t)$ within the FSM. :
 
 \begin{equation}
     u_{i,r}(t) = \begin{cases}

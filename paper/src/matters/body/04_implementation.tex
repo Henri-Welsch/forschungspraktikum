@@ -7,11 +7,27 @@
 Evaluating dynamic accessibility across thousands of origins over 336 hourly timesteps is computationally intractable if spatial overlays are computed dynamically at runtime.
 Our Python 3.10 pipeline decouples heavy geospatial precomputation from discrete-time simulation for municipal Trier, Germany ($117\,\text{km}^2$), integrating open geospatial data with official hydrodynamic flood models.
 
+
+\subsection{Hydrodynamic Stage Ingestion and Spatial Preprocessing}
+\label{subsec:data-ingestion}
+
+\subsubsection{Multi-Stage Hydrodynamic Ingestion (\texttt{HQ\_raw}):}
+Our hazard model digests empirical hydrodynamic flood stages from the Rhineland-Palatinate Water Management Authority.
+The dataset (\texttt{HQ\_raw}) comprises $29$ discrete gauge shapefiles (\texttt{Pegel\_09\_00m} to \texttt{Pegel\_11\_80m}), spanning gauge heights from $9.00\,\text{m}$ to $11.80\,\text{m}$ (HQ100 peak) in $0.10\,\text{m}$ increments.
+In \texttt{flood\_interpolation.py}, the ingestion routine projects geometries to WGS84 (\texttt{EPSG:4326}) and UTM Zone 32N (\texttt{EPSG:25832}), dissolving adjacent tiles via \texttt{shapely.ops.unary\_union} into unified stage polygons $\mathcal{P}_k$ ($k \in [0, 28]$) cached under \path{data/processed/flood_interpolation/}.
+
+\subsubsection{Multimodal Infrastructure and Network Ingestion}
+Infrastructure within Trier ($\sim 117\,\text{km}^2$) is extracted from OpenStreetMap via \texttt{OSMnx}:
+(1)~\textbf{Road Network ($G$)}: Filtered to drivable roads, yielding an undirected graph of $|V| = 5{,}817$ nodes with traversal times $c(e) = \text{length}(e)/\text{speed}(e)$.
+(2)~\textbf{Critical POIs and Utilities}: Destinations comprise $3$ acute hospitals and $12$ fire stations.
+Coupled utilities encompass $131$ power assets ($\mathcal{I}_{\text{power}}$, substations and plants) and $11$ water assets ($\mathcal{I}_{\text{water}}$, waterworks, towers, pumping stations).
+Facility footprints are converted to interior representative points $\mathbf{p}_i$ and snapped to nearest network vertices $\pi(\mathbf{p}_i) \in V$ via R-tree queries.
+
+
 \subsection{System Architecture and Execution Pipeline}
 \label{subsec:system-architecture}
 
-\subsubsection{Modular Architecture and Technology Stack}
-The pipeline couples five sequential modules: spatial ingestion, hazard overlay analysis, utility dependency mapping, temporal simulation, and scenario evaluation.
+\subsubsection{Modular Architecture and Technology Stack}: The pipeline couples five sequential modules: spatial ingestion, hazard overlay analysis, utility dependency mapping, temporal simulation, and scenario evaluation.
 The software foundation combines \texttt{GeoPandas} and \texttt{Shapely} (geometry and spatial indexing), \texttt{OSMnx} and \texttt{NetworkX} (graph extraction and routing), and \texttt{NumPy} (vectorized state matrices).
 As shown in Figure~\ref{fig:pipeline}, data flows unidirectionally through persistent disk caches into \texttt{dynamic\_roa.py}.
 
@@ -27,26 +43,11 @@ As shown in Figure~\ref{fig:pipeline}, data flows unidirectionally through persi
 
 \vspace{-\topsep}
 
-\subsubsection{Two-Phase Pipeline Paradigm}
-Naively intersecting road edges with flood polygons across $1{,}344$ hourly tier evaluations is computationally intractable.
+\subsubsection{Two-Phase Pipeline Paradigm:}
+Naively intersecting road edges with flood polygons across $1{,}344$ hourly tier evaluations is expensive.
 Our architecture enforces a two-phase paradigm:
-\textbf{Phase~1 (Spatial Preprocessing)} executes heavy geometric operations—network extraction, boundary aggregation, edge disruption slicing, and utility routing (NCNN)—once per study area, caching all cut-sets under \path{data/processed/}.
+\textbf{Phase~1 (Spatial Preprocessing)} executes heavy geometric operations, network extraction, boundary aggregation, edge disruption slicing, and utility routing (NCNN), once per study area, caching all cut-sets under \path{data/processed/}.
 \textbf{Phase~2 (Dynamic Simulation)} loads cached lookups into memory, evaluating FSM transitions and accessibility over 336 hours in seconds without geometric operations.
-
-\subsection{Hydrodynamic Stage Ingestion and Spatial Preprocessing}
-\label{subsec:data-ingestion}
-
-\subsubsection{Multi-Stage Hydrodynamic Ingestion (\texttt{HQ\_raw})}
-Our hazard model digests empirical hydrodynamic flood stages from the Rhineland-Palatinate Water Management Authority.
-The dataset (\texttt{HQ\_raw}) comprises $29$ discrete gauge shapefiles (\texttt{Pegel\_09\_00m} to \texttt{Pegel\_11\_80m}), spanning gauge heights from $9.00\,\text{m}$ to $11.80\,\text{m}$ (HQ100 peak) in $0.10\,\text{m}$ increments.
-In \texttt{flood\_interpolation.py}, the ingestion routine projects geometries to WGS84 (\texttt{EPSG:4326}) and UTM Zone 32N (\texttt{EPSG:25832}), dissolving adjacent tiles via \texttt{shapely.ops.unary\_union} into unified stage polygons $\mathcal{P}_k$ ($k \in [0, 28]$) cached under \path{data/processed/flood_interpolation/}.
-
-\subsubsection{Multimodal Infrastructure and Network Ingestion}
-Infrastructure within Trier ($\sim 117\,\text{km}^2$) is extracted from OpenStreetMap via \texttt{OSMnx}:
-(1)~\textbf{Road Network ($G$)}: Filtered to drivable roads, yielding an undirected graph of $|V| = 5{,}817$ nodes with traversal times $c(e) = \text{length}(e)/\text{speed}(e)$.
-(2)~\textbf{Critical POIs and Utilities}: Destinations comprise $3$ acute hospitals and $12$ fire stations.
-Coupled utilities encompass $131$ power assets ($\mathcal{I}_{\text{power}}$, substations and plants) and $11$ water assets ($\mathcal{I}_{\text{water}}$, waterworks, towers, pumping stations).
-Facility footprints are converted to interior representative points $\mathbf{p}_i$ and snapped to nearest network vertices $\pi(\mathbf{p}_i) \in V$ via R-tree queries.
 
 \subsection{Direct Flood Determination and Network Disruption Mapping}
 \label{subsec:hazard-mapping}
