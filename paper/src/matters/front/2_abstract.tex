@@ -1,10 +1,24 @@
 %! Author = WelJo
 %! Date = 4/30/2026
 
-%\begin{abstract}
 %    The abstract should briefly summarize the contents of the paper in
 %    150--250 words~\cite{ref_book1}.
 
-%    \keywords{First keyword \and Second keyword \and Another keyword.}
+\begin{abstract}
+    Critical infrastructures (CIs), such as hospitals, fire stations, and utility networks, are vital for urban functionality yet remain highly vulnerable to extreme environmental hazards.
+    While existing research frameworks typically evaluate either transport-related road accessibility or utility failure cascades in isolation, they fail to capture how cascading outages dynamically degrade spatial emergency service delivery.
+    In this paper, we propose a dynamic framework linking the Robustness of Accessibility (RoA) index with time-dependent modeling of cascading infrastructure failures.
+    We extend the RoA metric across a continuous disaster horizon and introduce a four-state Finite State Machine (FSM), spanning operational, depleting, dead, and rebooting states, to govern facility operationality based on power and water grid dependencies, backup buffer capacities, and recovery hysteresis.
+    Interdependent utility assets along subterranean corridors are topologically coupled to critical Points of Interest (POIs) using Network-Constrained Nearest-Neighbor (NCNN) graph routing.
+    We implement a decoupled, two-phase geospatial simulation pipeline and evaluate a 336-hour HQ100 flood scenario in Trier, Germany, across four complexity tiers for hospitals and fire stations.
+    The empirical results confirm that transport-only models substantially overestimate urban disaster resilience, yielding a 6.38\% higher cumulative accessibility index than the compound failure model.
+    Power outages emerge as the primary systemic cascading bottleneck, whereas backup buffers grant critical operational bridging during flood onset.
+    Furthermore, facility reboot latencies induce a pronounced 48-hour post-flood recovery lag, and topological coupling exposes severe vulnerabilities in physically unflooded peripheral districts due to upstream utility inundation.
+    Ultimately, our findings provide actionable insights for municipal disaster management and climate-resilient infrastructure planning.
 
-%\end{abstract}
+    %    \keywords{First keyword \and Second keyword \and Another keyword.}
+
+    \keywords{Critical Infrastructure \and Cascading Failures \and Robustness of Accessibility \and Finite State Machine \and Urban Resilience \and Flood Hazard \and Network-Constrained Routing.}
+\end{abstract}
+
+\newpage
