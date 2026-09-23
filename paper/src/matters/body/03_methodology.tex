@@ -150,7 +150,7 @@ When grid connectivity is restored ($u_{i,r}(t) = 1$), reserves recharge at the 
 \begin{tabularx}{\textwidth}{@{}l X@{}}
 $b_{i,r}(t), \, B_r$ & Reserve level and max capacity for resource $r$ and PoI $i$ at time $t$. \\
 $\lambda_r, \, \mu_r$ & Depletion and recharge rates per unit time for ressource $r$. \\
-$u_{i,r}(t)$ & Binary grid connection status for PoI $i$ and resource $r$ at time $t$. \\
+$u_{i,r}(t)$ & Binary grid connection status for POI $i$ and resource $r$ at time $t$. \\
 $\max, \min$ & Clamping bounds enforcing physical reserve limits $[0, B_r]$.
 \end{tabularx}
 
@@ -167,7 +167,7 @@ $\max, \min$ & Clamping bounds enforcing physical reserve limits $[0, B_r]$.
 \label{subsec:infrastructure-coupling-via-ncnn}
 
 
-Critical utility networks (power and water) physically follow street corridors underground, despite the individual supply assets and points of interest (POIs) often being located off the road network itself, as highlighted by Okabe et al.\ \cite{okabe2012}
+Critical utility networks (power and water) physically follow street corridors underground, despite the individual supply assets and points of interest (POIs) often being located off the road network itself, as highlighted by Okabe et al.\ \cite{okabe2012}.
 To capture topological barriers without assuming unconstrained Euclidean connectivity, utility dependencies are established using Network-Constrained Nearest-Neighbor (NCNN) mapping over an edge-weighted undirected street graph $G = (V, E)$.
 This framework accurately models underlying conduit pathways, enables spatial visualization within the simulation engine, and bridges continuous geographic space with discrete graph topology by projecting off-network entities onto their nearest street network components.
 Each POI $i$ is mapped to its topologically closest supply asset $s^*(i, r)$ for resource type $r \in \{\text{power}, \text{water}\}$ via a multi-source shortest-path search:
