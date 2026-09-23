@@ -18,16 +18,22 @@ In \texttt{flood\_interpolation.py}, the ingestion routine projects geometries t
 
 \subsubsection{Multimodal Infrastructure and Network Ingestion}
 Infrastructure within Trier ($\sim 117\,\text{km}^2$) is extracted from OpenStreetMap via \texttt{OSMnx}:
-(1)~\textbf{Road Network ($G$)}: Filtered to drivable roads, yielding an undirected graph of $|V| = 5{,}817$ nodes with traversal times $c(e) = \text{length}(e)/\text{speed}(e)$.
-(2)~\textbf{Critical POIs and Utilities}: Destinations comprise $3$ acute hospitals and $12$ fire stations.
-Coupled utilities encompass $131$ power assets ($\mathcal{I}_{\text{power}}$, substations and plants) and $11$ water assets ($\mathcal{I}_{\text{water}}$, waterworks, towers, pumping stations).
+
+\begin{enumerate}
+  \item \textbf{Road Network ($G$)}: Filtered to drivable roads, yielding an undirected graph of $|V| = 5{,}817$ nodes with traversal times $c(e) = \text{length}(e)/\text{speed}(e)$.
+  \item \textbf{Critical POIs and Utilities}: Destinations comprise $3$ acute hospitals and $12$ fire stations.
+  Coupled utilities encompass $131$ power assets ($\mathcal{I}_{\text{power}}$, substations and plants) and $11$ water assets ($\mathcal{I}_{\text{water}}$, waterworks, towers, pumping stations).
+\end{enumerate}
+
+\noindent
+
 Facility footprints are converted to interior representative points $\mathbf{p}_i$ and snapped to nearest network vertices $\pi(\mathbf{p}_i) \in V$ via R-tree queries.
 
 
 \subsection{System Architecture and Execution Pipeline}
 \label{subsec:system-architecture}
 
-\subsubsection{Modular Architecture and Technology Stack}: The pipeline couples five sequential modules: spatial ingestion, hazard overlay analysis, utility dependency mapping, temporal simulation, and scenario evaluation.
+\subsubsection{Modular Architecture and Technology Stack:} The pipeline couples five sequential modules: spatial ingestion, hazard overlay analysis, utility dependency mapping, temporal simulation, and scenario evaluation.
 The software foundation combines \texttt{GeoPandas} and \texttt{Shapely} (geometry and spatial indexing), \texttt{OSMnx} and \texttt{NetworkX} (graph extraction and routing), and \texttt{NumPy} (vectorized state matrices).
 As shown in Figure~\ref{fig:pipeline}, data flows unidirectionally through persistent disk caches into \texttt{dynamic\_roa.py}.
 
@@ -52,20 +58,20 @@ Our architecture enforces a two-phase paradigm:
 \subsection{Direct Flood Determination and Network Disruption Mapping}
 \label{subsec:hazard-mapping}
 
-\subsubsection{Facility Inundation via Interior Representative Points}
+\subsubsection{Facility Inundation via Interior Representative Points:}
 Determining facility inundation requires robust geometric testing.
 Standard centroids and bounding envelopes fail on complex non-convex footprints (e.g., L-shaped hospitals): centroids drift into dry courtyards, while bounding boxes trigger false positives when floodwaters overlap parking lots.
 In \texttt{flood\_status.py}, the representative\_point() method guarantees test coordinates lie strictly within the interior: $\mathbf{p}_i \in \text{Int}(\text{Geom}_i)$.
 Vulnerability across all 29 stages is evaluated via GeoPandas spatial R-trees (\texttt{sindex}) in $\mathcal{O}(\log |\mathcal{D}|)$ time and cached as direct flood matrices.
 
-\subsubsection{Road Network Edge Disruption and Cut-Sets}
+\subsubsection{Road Network Edge Disruption and Cut-Sets: }
 Dynamic accessibility degradation depends on road passability.
 In \texttt{stage\_disruptions.py}, graph edges are intersected against each stage polygon $\mathcal{P}_k$.
 To preserve elevated river crossings, edges with a non-null \texttt{bridge} tag remain open unless flood heights submerge bridge decks.
 Flooded edge tuples $(u, v, \text{key})$ form stage cut-sets $E_{\text{flood}, k} \subset E$, cached in JSON format.
 Passable subgraphs $G_k = (V, E \setminus E_{\text{flood}, k})$ are instantiated in memory in $\mathcal{O}(|E_{\text{flood}, k}|)$ time, bypassing geometric clipping entirely.
 
-\subsubsection{Network-Constrained Utility Routing (NCNN)}
+\subsubsection{Network-Constrained Utility Routing (NCNN):}
 Because utility conduits follow street corridors underground, Euclidean distance distorts real infrastructure dependencies across river barriers.
 In \texttt{ncnn.py}, dependency assignment $s^*(i, r)$ for facility $i \in \mathcal{D}$ and resource $r \in \{\text{power}, \text{water}\}$ is computed on base graph $G_0$ in UTM Zone 32N (\texttt{EPSG:25832}).
 To avoid pairwise queries, a multi-source Dijkstra traversal (\texttt{nx.multi\_source\_dijkstra}) runs from all utility assets $\mathcal{I}_r$ simultaneously, mapping each facility node $\pi(\mathbf{p}_i)$ to its nearest utility in $\mathcal{O}(|E| + |V|\log |V|)$ time.
@@ -98,7 +104,7 @@ Intermediate spatial artifacts are persisted under \path{data/processed/} (Table
 
 \vspace{-\topsep}
 
-\subsubsection{Computational Complexity Reduction}
+\subsubsection{Computational Complexity Reduction:}
 Un-cached accessibility across four tiers over $T=336\,\text{h}$ ($1{,}344$ timesteps) tests every edge against flood polygon $\mathcal{P}(t)$ in $\mathcal{O}(|\mathcal{M}| \cdot T \cdot |E| \cdot |\text{Vertices}|)$ time ($>3\,\text{h}$).
 Precomputing cuts per stage ($K=29$) reduces spatial overlays by $97.8\,\%$, enabling $\mathcal{O}(1)$ lookups in Phase~2 to evaluate scenarios in $<12\,\text{s}$.
 

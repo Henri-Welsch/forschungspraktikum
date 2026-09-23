@@ -30,7 +30,7 @@ Table~\ref{tab:multi-tier-summary} summarizes aggregate metrics across all four 
     \item \textbf{Pre-Event ($0 \le t < 48\,\text{h}$)}: Undisrupted baseline conditions.
     \item \textbf{Rising Limb ($48 \le t < 144\,\text{h}$)}: Floodwaters rise ($9.00\,\text{m} \to 11.80\,\text{m}$), closing roads and submerging substations while buffers sustain operations.
     \item \textbf{HQ100 Peak Plateau ($144 \le t < 192\,\text{h}$)}: Buffer exhaustion forces facilities offline, reaching nadir ($38.41\,\%$ Level A vs.\ $37.29\,\%$ Level~C).
-    \item \textbf{Recession Limb} ($192 \le t < 288\,\text{h}$): Floodwaters recede; Level A recovers synchronously with road clearance, while Level C remains incapacitated.
+    \item \textbf{Recession Limb} ($192 \le t < 288\,\text{h}$): Floodwaters recede, Level A recovers synchronously with road clearance, while Level C remains incapacitated.
     \item \textbf{Post-Event Recovery} ($288 \le t \le 336\,\text{h}$): Level A fully restores at hour 288, while Level C displays a 48-h recovery lag from reboot delays.
 \end{enumerate}
 
@@ -61,32 +61,31 @@ Table~\ref{tab:multi-tier-summary} summarizes aggregate metrics across all four 
 \end{table}
 
 \noindent
-Intermediate tiers reveal power grid failure (Level~B1) as Trier's primary cascading bottleneck: Level~B1 matches Level~C identically ($RoA_{\text{Int}} = 78.20\,\%$, nadir $37.29\,\%$), whereas Level~B2 maintains higher resilience ($RoA_{\text{Int}} = 78.84\,\%$, nadir $38.41\,\%$). This indicates water networks are less vulnerable to flooding than power infrastructure.
+Intermediate tiers reveal power grid failure (Level~B1) as Trier's primary cascading bottleneck: Level~B1 matches Level~C identically ($RoA_{\text{Int}} = 78.20\,\%$, nadir $37.29\,\%$), whereas Level~B2 maintains higher resilience ($RoA_{\text{Int}} = 78.84\,\%$, nadir $38.41\,\%$).
+This indicates that water networks are less vulnerable to flooding than power infrastructure.
+This is attributed to the location of water towers, which are situated farther away from the Mosel than power infrastructure and are therefore less likely to be affected by flooding.
 
 
 \subsection{Hypothesis Testing and Validation}
 \label{subsec:hypothesis-testing}
 
-\subsubsection{Functional Gap and Resilience Overestimation}
-\label{subsubsec:h1-analysis}
+\subsubsection{Functional Gap and Resilience Overestimation:}
 Hypothesis~H1 posits that transport-only models overestimate disaster resilience by ignoring cascading infrastructure dependencies.
 This is confirmed: Level~C reveals a $1.12\,\%$ drop in peak nadir ($37.29\,\%$ vs.\ $38.41\,\%$) and a $6.38\,\%$ reduction in cumulative resilience ($RoA_{\text{Int}} = 78.20\,\%$ vs.\ $84.58\,\%$), demonstrating significant resilience overestimation.
 The main contributors to this difference are the fire stations, where additional facilities are lost due to power outages, whereas hospitals lose all functionality across all levels due to inundation, as shown in Figures~\ref{fig:multi-tier-ts} and~\ref{fig:spatial-gap}.
 
-\subsubsection{Temporal Buffers and Post-Flood Recovery Hysteresis}
-\label{subsubsec:h2-analysis}
+\subsubsection{Temporal Buffers and Post-Flood Recovery Hysteresis:}
 Hypothesis~H2 posits that facility buffers grant operational delay during onset, while restart requirements produce recovery hysteresis.
-This is confirmed: emergency power buffers delay facility collapse by up to $24\,\text{hours}$ during flood rise.
-This 48-hour recovery lag validates the operational penalty of FSM reboot latencies ($T_{\text{repair}} \in \{24\,\text{h for fire.}, 48\,\text{h for hosp.}\}$) and the $\theta = 0.15$ recharge threshold.
+This is confirmed: emergency power buffers delay facility collapses by up to $24\,\text{hours}$ during flood rise.
+This 48-hour recovery lag validates the operational penalty of FSM reboot latencies ($T_{\text{repair}} \in \{24\,\text{h for fire.}, 48\,\text{h for hosp.}\}$),
+While the buffer delay can be observed in Figure~\ref{fig:multi-tier-ts} while the recovery lag can be observed in Figure~\ref{fig:multi-tier-ts}.
 
 \subsection{Spatial Vulnerability: Municipal Patterns and Service Disparity}
 \label{subsec:spatial-vulnerability}
 
-To evaluate spatial disruption patterns across Trier, Figure~\ref{fig:spatial_resilience_map} maps accessibility loss ($\Delta RoA_j$) at peak flood (HQ100), comparing transport baseline (Level~A) against compound failure (Level~C).
-River inundation severs primary transit arteries.
-Because acute healthcare facilities ($N=3$) are clustered near the river axis, road closures eliminate access entirely, dropping hospital accessibility to $0.00\,\%$ across all tiers; hospital access is thus strictly transport-dominated.
-Conversely, fire stations ($N=12$) are distributed across municipal districts, providing structural redundancy that preserves a $76.82\,\%$ nadir in Level~A.
-Under Level~C, utility cascades compromise this distributed resilience, reducing fire station nadir to $74.59\,\%$, as shown in Figure \ref{fig:multi-tier-ts}
+Figure~\ref{fig:spatial_resilience_map} maps accessibility loss ($\Delta RoA_j$) across Trier at HQ100, comparing the transport baseline (Level~A) to compound failure (Level~C), where river inundation severs primary transit arteries.
+Because healthcare facilities ($N=3$) cluster along the river axis, road closures eliminate access entirely, reducing hospital accessibility to $0.00\%$ across all tiers, access is thus strictly transport-dominated.
+Conversely, fire stations ($N=12$) distributed across municipal districts provide redundancy, preserving a $76.82\%$ nadir in Level~A. Under Level~C, utility cascades reduce this to $74.59\%$ (Figure~\ref{fig:spatial-gap}), though Ruwer-Eitelsbach remains operational throughout the buffer despite power-station flooding.
 
 \begin{figure}
     \centering
