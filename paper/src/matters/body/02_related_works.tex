@@ -4,7 +4,7 @@
 \section{Fundamentals and Related Work}
 \label{sec:related_works}
 
-Existing methods for assessing CI resilience consider various behavioral aspects during disruptions~\cite{berdica2002,calvert2017,kaub2024,lickert2024}.
+Existing methods for assessing CI resilience consider various behavioral aspects during disruptions~\cite{calvert2017,kaub2024,lickert2024}.
 Resilience is not uniformly defined: Calvert and Snelder see it as a system's ability to cope with disruptions and restore functionality~\cite{calvert2017}, while Kaub et al.\ focus on road \textit{serviceability}~\cite{kaub2024}.
 Bruneau et al.\ highlights its time-dependent nature, where performance decreases during disruptions and gradually recovers~\cite{bruneau2003}.
 We follow this temporal perspective, evaluating functional losses and subsequent recovery.
@@ -21,7 +21,7 @@ Following these lifetimes and \textit{repair times}, systems transition between 
 \subsection{Road Network Resilience and Accessibility}
 \label{subsec:road-network-resilience-and-accessibility}
 Emergency services depend on road network \textit{serviceability}, the availability of connections determining travel distances and costs~\cite{kaub2024}.
-Disruptions reduce this serviceability, increasing travel times~\cite{berdica2002}.
+Disruptions reduce this serviceability, increasing travel times~\cite{kaub2024}.
 While the \textit{Link Performance Index for Resilience} (LPIR) evaluates segments, it requires detailed data~\cite{calvert2017}.
 Similarly, the \textit{Loss of Serviceability} (LoS) index evaluates resilience by comparing the shortest paths to analyze detours~\cite{kaub2024}.
 However, LoS fails when nodes become isolated, as the distance becomes infinite and the index loses its explanatory value~\cite{kaub2024}.

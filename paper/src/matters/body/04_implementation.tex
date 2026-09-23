@@ -13,7 +13,7 @@ Our Python 3.10 pipeline decouples heavy geospatial precomputation from discrete
 
 \subsubsection{Multi-Stage Hydrodynamic Ingestion (\texttt{HQ\_raw}):}
 Our hazard model digests empirical hydrodynamic flood stages from the Rhineland-Palatinate Water Management Authority.
-The dataset (\texttt{HQ\_raw}) comprises $29$ discrete gauge shapefiles (\texttt{Pegel\_09\_00m} to \texttt{Pegel\_11\_80m}), spanning gauge heights from $9.00\,\text{m}$ to $11.80\,\text{m}$ (HQ100 peak) in $0.10\,\text{m}$ increments.
+The dataset (\texttt{HQ\_raw}) comprises $29$ discrete gauge shapefiles (\texttt{Pegel\_09\_00m} to \texttt{Pegel\_11\_80m}), spanning gauge heights from $9.00\,\text{m}$ to $11.80\,\text{m}$ (HQ100 peak) in $0.10\,\text{m}$ increments~\cite{trier_geodaten}.
 In \texttt{flood\_interpolation.py}, the ingestion routine projects geometries to WGS84 (\texttt{EPSG:4326}) and UTM Zone 32N (\texttt{EPSG:25832}), dissolving adjacent tiles via \texttt{shapely.ops.unary\_union} into unified stage polygons $\mathcal{P}_k$ ($k \in [0, 28]$) cached under \path{data/processed/flood_interpolation/}.
 
 \subsubsection{Multimodal Infrastructure and Network Ingestion}
