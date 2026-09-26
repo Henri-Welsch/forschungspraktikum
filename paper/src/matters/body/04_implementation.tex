@@ -124,10 +124,15 @@ Facility state $\sigma_i(t)$ in \texttt{backup\_lifetime.py} spans four modes (\
 
 \subsubsection{Multi-Tier Scenario Execution and Payload Packaging}
 Demand is sampled across $m = 3{,}972$ origin nodes ($50\,\text{m}$ grid).
-The multi-tier runner executes four tiers:
-\textbf{Level~A} ($B_r = \infty$);
-\textbf{Level~B1} ($B_{\text{power}} \in \{24\,\text{h}, 72\,\text{h}\}$);
-\textbf{Level~B2} ($B_{\text{water}} \in \{12\,\text{h}, 48\,\text{h}\}$); and
-\textbf{Level~C} (compound buffers, $\theta = 0.15$, $T_{\text{repair}} \in \{24\,\text{h}, 48\,\text{h}\}$).
+The multi-tier runner evaluates four resilience tiers under uniform recovery parameters ($\theta = 0.15$ hysteresis threshold, reboot delay $T_{\text{repair}} = 24\,\text{h}$ for fire stations and $48\,\text{h}$ for hospitals):
+
+\begin{itemize}
+  \item \textbf{Level~A}: Infinite power and water buffers ($B_{\text{power}} = B_{\text{water}} = \infty$) across all facilities, isolating pure road network disruptions as a baseline.
+  \item \textbf{Level~B1}: Infinite water buffers ($B_{\text{water}} = \infty$) with finite power reserves ($B_{\text{power}} = 24\,\text{h}$ for fire stations, $72\,\text{h}$ for hospitals).
+  \item \textbf{Level~B2}: Infinite power buffers ($B_{\text{power}} = \infty$) with finite water reserves ($B_{\text{water}} = 12\,\text{h}$ for fire stations, $48\,\text{h}$ for hospitals).
+  \item \textbf{Level~C}: Compound power and water buffers combining the finite reserve constraints of Levels~B1 and~B2.
+\end{itemize}
+
+\noindent
 Multi-source Dijkstra from active facilities $\mathcal{D}_{\text{active}}(t)$ on $G_{k(t)}$ runs in $\mathcal{O}(|E| + |V|\log |V|)$ time, memoized under $(k(t), \mathcal{D}_{\text{active}}(t))$.
 Outputs are serialized into \path{multi_tier_roa_bundle_Trier_336h.json}, storing $\text{RoA}(t)$ curves, FSM logs, and district metrics for downstream evaluation.
