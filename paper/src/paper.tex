@@ -16,6 +16,7 @@
 \usepackage{subcaption}
 \usepackage{booktabs}
 \usepackage{enumitem}
+\usepackage{pdfpages}
 \usetikzlibrary{arrows.meta, positioning, shapes.geometric}
 \renewcommand\UrlFont{\color{blue}\rmfamily}
 \urlstyle{rm}
@@ -40,6 +41,9 @@
     % Back Matter
     \bibliographystyle{splncs04}
     \bibliography{paper}
+
+    \includepdf[pages=-]{matters/back/Declaration of Authorship and AI Usage.pdf}
+    \includepdf[pages=-]{matters/back/Overview of Used Generative AI Tools and Digital Aids.pdf}
 
 \end{document}
 

@@ -105,7 +105,7 @@ To capture this dynamic functionality, we model each POI $i$ using a four-state 
 \subsubsection{FSM State Transitions and Hysteresis:}
 FSM state transitions are governed by resource availability, continuous flood exposure, and hysteresis rules, as summarized in Table~\ref{tab:fsm-state-transitions}.
 Here, $\mathbf{p}_i$ denotes the geographic coordinates of facility $i$, with $\mathbf{p}_i \in \text{FloodPolygon}(t)$ indicating direct site inundation at time $t$.
-Resource dependencies, including utility status $u{i,r}(t)$, reserve buffers $b{i,r}(t)$, and maximum capacities $B_r$ for $r \in {\text{power}, \text{water}}$, are detailed in the subsequent \hyperref[subsubsec:fsm-buffer-dynamics]{\textit{FSM Buffer Dynamics}} section.
+Resource dependencies, including utility status $u{i,r}(t)$, reserve buffers $b{i,r}(t)$, and maximum capacities $B_r$ for $r \in \{\text{power}, \text{water}\}$, are detailed in the subsequent \hyperref[subsubsec:fsm-buffer-dynamics]{\textit{FSM Buffer Dynamics}} section.
 The parameter $\theta = 0.15$ enforces hysteresis by defining the minimum relative buffer capacity required to initiate rebooting without full grid restoration, preventing rapid failure-recovery cycling (chattering).
 
 \vspace{-\topsep}
@@ -161,7 +161,7 @@ $\max, \min$ & Clamping bounds enforcing physical reserve limits $[0, B_r]$.
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.9\linewidth]{resources/statemachine}
+    \includegraphics[width=0.99\linewidth]{resources/statemachine}
     \caption{Finite state machine governing POI functional status based on utility connectivity, reserve dynamics, hysteresis thresholds, and environmental flood overrides.}
     \label{fig:fsm_state_machine}
 \end{figure}

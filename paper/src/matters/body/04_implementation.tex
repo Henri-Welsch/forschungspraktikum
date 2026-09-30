@@ -5,7 +5,7 @@
 \label{sec:implementation}
 
 Evaluating dynamic accessibility across thousands of origins over 336 hourly timesteps is computationally intractable if spatial overlays are computed dynamically at runtime.
-Our Python 3.10 pipeline decouples heavy geospatial precomputation from discrete-time simulation for municipal Trier, Germany ($117\,\text{km}^2$), integrating open geospatial data with official hydrodynamic flood models.
+Our Python 3.11+ pipeline decouples heavy geospatial precomputation from discrete-time simulation for municipal Trier, Germany ($117\,\text{km}^2$), integrating open geospatial data with official hydrodynamic flood models.
 
 
 \subsection{Hydrodynamic Stage Ingestion and Spatial Preprocessing}
@@ -13,20 +13,19 @@ Our Python 3.10 pipeline decouples heavy geospatial precomputation from discrete
 
 \subsubsection{Multi-Stage Hydrodynamic Ingestion (\texttt{HQ\_raw}):}
 Our hazard model digests empirical hydrodynamic flood stages from the Rhineland-Palatinate Water Management Authority.
-The dataset (\texttt{HQ\_raw}) comprises $29$ discrete gauge shapefiles (\texttt{Pegel\_09\_00m} to \texttt{Pegel\_11\_80m}), spanning gauge heights from $9.00\,\text{m}$ to $11.80\,\text{m}$ (HQ100 peak) in $0.10\,\text{m}$ increments~\cite{trier_geodaten}.
+The dataset (\texttt{HQ\_raw}) comprises $29$ discrete gauge GeoJSON feature collections (\texttt{Pegel\_09\_00m.geojson} to \texttt{Pegel\_11\_80m.geojson}), spanning gauge heights from $9.00\,\text{m}$ to $11.80\,\text{m}$ (HQ100 peak) in $0.10\,\text{m}$ increments~\cite{trier_geodaten}.
 In \texttt{flood\_interpolation.py}, the ingestion routine projects geometries to WGS84 (\texttt{EPSG:4326}) and UTM Zone 32N (\texttt{EPSG:25832}), dissolving adjacent tiles via \texttt{shapely.ops.unary\_union} into unified stage polygons $\mathcal{P}_k$ ($k \in [0, 28]$) cached under \path{data/processed/flood_interpolation/}.
 
 \subsubsection{Multimodal Infrastructure and Network Ingestion}
 Infrastructure within Trier ($\sim 117\,\text{km}^2$) is extracted from OpenStreetMap via \texttt{OSMnx}:
 
 \begin{enumerate}
-  \item \textbf{Road Network ($G$)}: Filtered to drivable roads, yielding an undirected graph of $|V| = 5{,}817$ nodes with traversal times $c(e) = \text{length}(e)/\text{speed}(e)$.
+  \item \textbf{Road Network ($G$)}: Filtered to drivable roads, yielding an undirected graph of $|V| = 5{,}817$ nodes with edge traversal costs $c(e) = \text{length}(e)$ measured as physical network distance in meters.
   \item \textbf{Critical POIs and Utilities}: Destinations comprise $3$ acute hospitals and $12$ fire stations.
   Coupled utilities encompass $131$ power assets ($\mathcal{I}_{\text{power}}$, substations and plants) and $11$ water assets ($\mathcal{I}_{\text{water}}$, waterworks, towers, pumping stations).
 \end{enumerate}
 
 \noindent
-
 Facility footprints are converted to interior representative points $\mathbf{p}_i$ and snapped to nearest network vertices $\pi(\mathbf{p}_i) \in V$ via R-tree queries.
 
 
@@ -64,7 +63,7 @@ Standard centroids and bounding envelopes fail on complex non-convex footprints 
 In \texttt{flood\_status.py}, the representative\_point() method guarantees test coordinates lie strictly within the interior: $\mathbf{p}_i \in \text{Int}(\text{Geom}_i)$.
 Vulnerability across all 29 stages is evaluated via GeoPandas spatial R-trees (\texttt{sindex}) in $\mathcal{O}(\log |\mathcal{D}|)$ time and cached as direct flood matrices.
 
-\subsubsection{Road Network Edge Disruption and Cut-Sets: }
+\subsubsection{Road Network Edge Disruption and Cut-Sets:}
 Dynamic accessibility degradation depends on road passability.
 In \texttt{stage\_disruptions.py}, graph edges are intersected against each stage polygon $\mathcal{P}_k$.
 To preserve elevated river crossings, edges with a non-null \texttt{bridge} tag remain open unless flood heights submerge bridge decks.
@@ -135,4 +134,4 @@ The multi-tier runner evaluates four resilience tiers under uniform recovery par
 
 \noindent
 Multi-source Dijkstra from active facilities $\mathcal{D}_{\text{active}}(t)$ on $G_{k(t)}$ runs in $\mathcal{O}(|E| + |V|\log |V|)$ time, memoized under $(k(t), \mathcal{D}_{\text{active}}(t))$.
-Outputs are serialized into \path{multi_tier_roa_bundle_Trier_336h.json}, storing $\text{RoA}(t)$ curves, FSM logs, and district metrics for downstream evaluation.
+Outputs are serialized into \path{multi_tier_roa_bundle_Trier_Germany_336h.json}, storing $\text{RoA}(t)$ curves, FSM logs, and district metrics for downstream evaluation.
