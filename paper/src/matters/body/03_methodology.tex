@@ -65,7 +65,7 @@ Because $\text{RoA}(\mathcal{C}, t)$ is evaluated continuously over the course o
 While physical road availability is a necessary condition for accessibility, it is insufficient to guarantee operational functionality.
 Facilities such as hospitals and fire stations depend heavily on external utilities (power and water).
 When utility grid connections fail, internal backup systems allow temporary operation.
-These states and transitions need to be governed by a Finite State Machine (FSM), which bridges also the gap between Kaub et al.\ and Lickert et al.
+These states and transitions need to be governed by a Finite State Machine (FSM), which also bridges the gap between Kaub et al.\ and Lickert et al.
 
 \subsubsection{FSM States:}
 To capture this dynamic functionality, we model each POI $i$ using a four-state FSM where at any time step $t$, the state of a facility is defined as $\sigma_i(t)$, which determines an operational binary indicator $f_i(t) \in \{0, 1\}$ indicating whether a facility can actively accept traffic and deliver service:
@@ -98,7 +98,7 @@ To capture this dynamic functionality, we model each POI $i$ using a four-state 
     The facility remains functional ($f_i(t) = 1$). \\
     Dead & At least one reserve buffer is fully exhausted or the facility site is directly flooded.
     The facility is non-functional ($f_i(t) = 0$). \\
-    Rebooting & All utility supply are restored or buffer reserves are above thresholds.
+    Rebooting & All utility supplies are restored or buffer reserves are above thresholds.
     The facility is non-functional ($f_i(t) = 0$).
 \end{tabularx}
 
@@ -152,7 +152,7 @@ When grid connectivity is restored ($u_{i,r}(t) = 1$), reserves recharge at the 
 \noindent
 \begin{tabularx}{\textwidth}{@{}l X@{}}
 $b_{i,r}(t), \, B_r$ & Reserve level and max capacity for resource $r$ and POI $i$ at time $t$. \\
-$\lambda_r, \, \mu_r$ & Depletion and recharge rates per unit time for ressource $r$. \\
+$\lambda_r, \, \mu_r$ & Depletion and recharge rates per unit time for resource $r$. \\
 $u_{i,r}(t)$ & Binary grid connection status for POI $i$ and resource $r$ at time $t$. \\
 $\max, \min$ & Clamping bounds enforcing physical reserve limits $[0, B_r]$.
 \end{tabularx}
@@ -191,7 +191,7 @@ $\pi(\mathbf{p}_i), \pi(s)$ & Snapping operators projecting off-network POI ($\m
 
 \vspace{7mm} \noindent
 This topological assignment is static and happens only once at the start of the simulation.
-A dynamic assignment could be implemented by governing the dynamic grid status $u_{i,r}(t)$ within the FSM. :
+A dynamic assignment could be implemented by governing the dynamic grid status $u_{i,r}(t)$ within the FSM:
 
 \begin{equation}
     u_{i,r}(t) = \begin{cases}
