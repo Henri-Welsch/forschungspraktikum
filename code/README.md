@@ -29,7 +29,7 @@ In a flawed attempt to collect all relevant tools and scripts use to manipulate 
 
 #### Data Types:
 
-- GeoJSON - These files store vector geometries, and associated attributes. The current flood simulation uses GeoJSON for inundation polygons, infrastructure features, study-area boundaries, sample points, and spatial intermediate results.
+- TIF (GeoTIFF) - These files contain raster data, in the context of this repository, they are used to store      elevation data. The elevation data is stored as a 32-bit floating point number, and is stored in the "band" of the file.
 - GPKG (GeoPackage) - These files contain tabular data, in the context of this repository, they are used to store
   data that is associated with a specific point. For example information about the AKRIMA Story like distribution
   information
